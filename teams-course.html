@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'self';">
+<meta http-equiv="X-Frame-Options" content="ALLOWALL">
+<script>
+  // Intercept any attempt to navigate away from this page
+  window.addEventListener('click', function(e) {
+    var target = e.target.closest('a');
+    if (target && target.href && !target.href.startsWith('#') && !target.href.startsWith('javascript')) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, true);
+  // Block window.open calls
+  window.open = function() { return null; };
+  // Block location changes
+  var _loc = window.location.href;
+  Object.defineProperty(window, 'location', {
+    get: function() { return { href: _loc, assign: function(){}, replace: function(){}, reload: function(){} }; },
+    set: function() {}
+  });
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microsoft Teams — Admin & User Mini Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; }
+  body { background: #0a0c14; font-family: 'IBM Plex Mono', monospace; color: #c8d6e5; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0a0c14; }
+  ::-webkit-scrollbar-thumb { background: #6264a733; border-radius: 2px; }
+  .btn-primary { background: #6264a7; color: #ffffff; border: none; font-family: 'IBM Plex Mono', monospace; font-weight: 700; letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; }
+  .btn-primary:hover { background: #7b83c6; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: #5a6a8a; border: 1px solid #1e2235; font-family: 'IBM Plex Mono', monospace; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover { border-color: #6264a744; color: #8a9ab4; }
+  .lesson-card { transition: all 0.2s; cursor: pointer; }
+  .lesson-card:hover { border-color: #6264a7 !important; background: #12152a !important; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const PURPLE = "#6264a7";
+const PURPLE_LT = "#7b83c6";
+const PURPLE_BG = "#1a1c35";
+const ACCENT = "#a9abdf";
+
+const curriculum = [
+  {
+    module: 1,
+    theme: "Teams Fundamentals",
+    icon: "⬡",
+    lessons: [
+      {
+        id: 1, title: "What Is Microsoft Teams?", duration: "15 min", xp: 100,
+        tag: "USER",
+        content: [
+          { type: "intro", text: "Microsoft Teams is the hub for teamwork in Microsoft 365. It combines persistent chat, video meetings, file storage, and app integration into a single workspace. At Aligned Data Centers, Teams is how the organization communicates — between IT, operations, management, and facilities." },
+          { type: "heading", text: "Core Components" },
+          { type: "bullets", items: [
+            "Teams & Channels — Organized workspaces. A Team is a group (e.g., IT Support). Channels are topics within that group (e.g., #helpdesk, #server-alerts).",
+            "Chat — Direct messaging between individuals or small groups. Persistent, searchable history.",
+            "Meetings — Scheduled or ad-hoc video/audio calls. Integrated with Outlook calendar.",
+            "Files — Each channel has its own SharePoint document library. Files shared in chat go to OneDrive.",
+            "Apps & Tabs — Integrate third-party tools, dashboards, and forms directly into channels.",
+            "Activity Feed — Your notification center. Mentions, replies, and channel activity in one place."
+          ]},
+          { type: "heading", text: "Teams vs. Email: When to Use Which" },
+          { type: "table", headers: ["Situation", "Use Teams", "Use Email"], rows: [
+            ["Quick question to a colleague", "✓ Chat", ""],
+            ["Ongoing project discussion", "✓ Channel", ""],
+            ["Formal external communication", "", "✓ Email"],
+            ["Urgent IT alert to team", "✓ Channel post", ""],
+            ["Scheduling a meeting", "✓ Teams calendar", "✓ Outlook"],
+            ["Sharing files internally", "✓ Channel / Chat", ""],
+          ]},
+          { type: "heading", text: "How It Fits at Aligned" },
+          { type: "bullets", items: [
+            "IT Support team — your primary workspace for tickets, alerts, and coordination",
+            "Deskside requests may come in via Teams chat from end users",
+            "DC operations team may post server alerts into dedicated monitoring channels",
+            "All-hands announcements from leadership posted in company-wide Teams channels",
+            "Video meetings replace most in-person meetings for distributed staff"
+          ]}
+        ],
+        quiz: [
+          { q: "What is the difference between a Team and a Channel in Microsoft Teams?", a: "A Team is the overall group workspace (e.g., IT Support). A Channel is a topic-specific workspace within that team (e.g., #helpdesk, #server-alerts)." },
+          { q: "Where are files stored when shared in a Teams channel?", a: "Files shared in a channel are stored in the associated SharePoint document library. Files shared in private chat go to OneDrive." },
+          { q: "What is the Activity Feed used for?", a: "The Activity Feed is the notification center — it shows mentions, replies, channel activity, and other alerts in one place." }
+        ]
+      },
+      {
+        id: 2, title: "Navigating the Teams Interface", duration: "15 min", xp: 100,
+        tag: "USER",
+        content: [
+          { type: "intro", text: "The Teams interface is consistent across desktop, web, and mobile. Knowing the layout cold means you spend zero time hunting for features when someone is waiting on you." },
+          { type: "heading", text: "The Left Rail (Primary Navigation)" },
+          { type: "bullets", items: [
+            "Activity — Notification feed. @ mentions, replies, missed calls, and reactions.",
+            "Chat — All direct messages and group chats. Pin frequently used conversations.",
+            "Teams — Browse and access all Teams you're a member of and their channels.",
+            "Calendar — View, schedule, and join meetings. Syncs with Outlook.",
+            "Calls — Dial pad, voicemail, call history (if PSTN calling is enabled by admin).",
+            "Files — Quick access to recently opened and shared files across Teams and OneDrive.",
+            "Apps — Access installed apps and discover new integrations."
+          ]},
+          { type: "heading", text: "Inside a Channel" },
+          { type: "bullets", items: [
+            "Posts tab — The channel conversation. Use this for team-visible discussions.",
+            "Files tab — The SharePoint library for this channel. Shared files live here.",
+            "Wiki / Notes tab — Collaborative documentation space.",
+            "Custom tabs — Pinned apps, dashboards, or websites added by the team owner.",
+            "Meet Now button (top right) — Instant unscheduled meeting in the channel."
+          ]},
+          { type: "heading", text: "Key Keyboard Shortcuts (Memorize These)" },
+          { type: "table", headers: ["Shortcut", "Action"], rows: [
+            ["Ctrl + E", "Jump to Search"],
+            ["Ctrl + N", "New Chat"],
+            ["Ctrl + Shift + M", "Mute / Unmute in a meeting"],
+            ["Ctrl + Shift + O", "Toggle camera in a meeting"],
+            ["Ctrl + Shift + Space", "Go to Activity Feed"],
+            ["Alt + Shift + C", "Go to most recent chat"],
+            ["Ctrl + /", "See all keyboard shortcuts"],
+          ]},
+          { type: "heading", text: "Search — Your Most Powerful Tool" },
+          { type: "bullets", items: [
+            "Ctrl + E opens the search bar from anywhere",
+            "Search by keyword, person, file, or message",
+            "Use /commands in the search bar: /call [name], /available, /busy, /dnd",
+            "Filter results by Messages, People, or Files for faster results"
+          ]}
+        ],
+        quiz: [
+          { q: "Where do you find @ mention notifications and missed call alerts in Teams?", a: "In the Activity feed — accessible from the bell icon in the left rail." },
+          { q: "What keyboard shortcut mutes and unmutes your microphone during a Teams meeting?", a: "Ctrl + Shift + M" },
+          { q: "What tab within a channel contains the shared files for that channel?", a: "The Files tab, which connects to the channel's SharePoint document library." }
+        ]
+      },
+      {
+        id: 3, title: "Chat, Messaging & Etiquette", duration: "15 min", xp: 100,
+        tag: "USER",
+        content: [
+          { type: "intro", text: "Effective Teams communication is a skill. Poor messaging habits — wall-of-text posts, missing @mentions, unclear threads — create noise and slow teams down. This lesson covers professional-grade messaging at Aligned." },
+          { type: "heading", text: "Chat vs. Channel Posts: Which to Use" },
+          { type: "bullets", items: [
+            "Direct Chat: 1-on-1 or small group. Private. For questions that only affect specific people.",
+            "Channel Post: Visible to the whole team. For anything the team should know or act on.",
+            "Rule of thumb: If others would benefit from seeing the answer, post in the channel.",
+            "Avoid DM-ing questions that belong in the channel — it siloes knowledge."
+          ]},
+          { type: "heading", text: "Formatting Messages" },
+          { type: "bullets", items: [
+            "Click the Format icon (A with pen) to expand the rich text editor",
+            "Use Subject lines for long channel posts — makes scanning easier",
+            "Bold key terms. Use bullet lists for multi-point messages.",
+            "Use code blocks (</>) for pasting terminal output, error messages, or IP addresses",
+            "Keep messages scannable — one topic per message, not a wall of text"
+          ]},
+          { type: "heading", text: "@Mentions — Use Them Correctly" },
+          { type: "bullets", items: [
+            "@name — Notifies a specific person. Use when action is needed from them.",
+            "@team — Notifies everyone in the team. Use sparingly for genuine team-wide items.",
+            "@channel — Notifies only members who have that channel visible. Less disruptive than @team.",
+            "Never @team or @channel for non-urgent items — it trains people to ignore alerts.",
+            "At Aligned: use @channel for IT alerts. Use @name for assigned tasks."
+          ]},
+          { type: "heading", text: "Reactions & Threads" },
+          { type: "bullets", items: [
+            "React with emoji (👍 ✓ 👀) to acknowledge messages without adding noise",
+            "Always reply in thread — click 'Reply' under the original post, not a new post",
+            "Threaded replies keep conversations organized and readable",
+            "Mark messages as urgent or important sparingly — overuse kills the signal"
+          ]},
+          { type: "heading", text: "Professional Tone at Aligned" },
+          { type: "bullets", items: [
+            "Teams is a professional tool — treat it like email, not SMS",
+            "Avoid one-word replies in channels ('ok', 'k', 'thx') — react with emoji instead",
+            "Set your status (Available / Busy / DND / Away) accurately — colleagues depend on it",
+            "Use /dnd in search to set Do Not Disturb during focused work or on-call response"
+          ]}
+        ],
+        quiz: [
+          { q: "What is the difference between @team and @channel in a Teams mention?", a: "@team notifies everyone in the team. @channel notifies only members who have that channel active/visible. @channel is less disruptive for non-urgent posts." },
+          { q: "How should you reply to a message in a Teams channel to keep conversations organized?", a: "Click Reply under the original post to respond in-thread. Do not post a new message — it breaks the conversation flow." },
+          { q: "What formatting element should you use when pasting error messages, terminal output, or IP addresses into Teams?", a: "A code block — use the </> button in the rich text editor. It preserves formatting and makes technical content readable." }
+        ]
+      }
+    ]
+  },
+  {
+    module: 2,
+    theme: "Meetings & Calls",
+    icon: "◈",
+    lessons: [
+      {
+        id: 4, title: "Scheduling & Running Meetings", duration: "15 min", xp: 100,
+        tag: "USER",
+        content: [
+          { type: "intro", text: "Teams meetings are the backbone of real-time collaboration at Aligned. Knowing how to schedule, run, and follow up on meetings efficiently is a core professional skill — especially in IT where meetings often involve incident reviews and change advisory board sessions." },
+          { type: "heading", text: "Scheduling a Meeting" },
+          { type: "bullets", items: [
+            "Click Calendar in the left rail → New Meeting (top right)",
+            "Add title, required and optional attendees, date/time, and recurrence if needed",
+            "Set a location ('Microsoft Teams Meeting' auto-populates for virtual)",
+            "Add an agenda in the Details field — always include one, even briefly",
+            "Click Send — attendees get a calendar invite with the Teams join link embedded"
+          ]},
+          { type: "heading", text: "Meeting Options (Set These Before Important Meetings)" },
+          { type: "bullets", items: [
+            "Who can bypass the lobby? — Set to 'People in my org' for internal-only meetings",
+            "Who can present? — Restrict to specific people to avoid accidental screen sharing",
+            "Allow mic for attendees? — Mute all on entry for large meetings or presentations",
+            "Allow camera for attendees? — Can be disabled for all-hands or training sessions",
+            "Access Meeting Options via the meeting in Calendar → Edit → Meeting Options link"
+          ]},
+          { type: "heading", text: "In-Meeting Controls" },
+          { type: "table", headers: ["Control", "What It Does"], rows: [
+            ["Mute / Unmute", "Ctrl+Shift+M. Mute yourself when not speaking — always."],
+            ["Camera on/off", "Ctrl+Shift+O. Keep on when presenting or in small meetings."],
+            ["Share Screen", "Share entire desktop, a window, or a whiteboard."],
+            ["Raise Hand", "Signal you want to speak without interrupting."],
+            ["Breakout Rooms", "Split attendees into smaller groups for parallel discussion."],
+            ["Meeting Chat", "Side panel chat during the meeting — visible to all attendees."],
+            ["Record", "Saves to SharePoint/Stream. Always notify attendees before recording."],
+          ]},
+          { type: "heading", text: "After the Meeting" },
+          { type: "bullets", items: [
+            "Meeting recording is automatically posted to the channel or chat after the call ends",
+            "Meeting chat transcript is available if transcription was enabled",
+            "Send a follow-up in the channel with action items, owners, and deadlines",
+            "For CAB or incident meetings: document decisions in the ticket, not just in Teams chat"
+          ]}
+        ],
+        quiz: [
+          { q: "Where should you set meeting options like lobby bypass and presenter permissions?", a: "In the Calendar event → Edit → Meeting Options link. Set these before the meeting starts, especially for formal or large meetings." },
+          { q: "What should you always include when scheduling a Teams meeting?", a: "An agenda in the Details field — even a brief one. It sets expectations and helps attendees prepare." },
+          { q: "What keyboard shortcut toggles your camera during a Teams meeting?", a: "Ctrl + Shift + O" }
+        ]
+      },
+      {
+        id: 5, title: "Calls, Voicemail & Devices", duration: "15 min", xp: 100,
+        tag: "USER",
+        content: [
+          { type: "intro", text: "If Aligned has PSTN calling enabled, Teams becomes your desk phone. Even without it, you can make Teams-to-Teams calls to any colleague. Understanding calling features keeps you reachable and professional." },
+          { type: "heading", text: "Types of Calls in Teams" },
+          { type: "bullets", items: [
+            "Teams VoIP Call — Free, internet-based call to any Teams user in the org. Click the phone icon on any contact.",
+            "PSTN Call — If enabled by admin, lets you call external phone numbers from Teams using a dial pad.",
+            "Video Call — Same as VoIP but with camera. Initiate from a chat or contact card.",
+            "Group Call — Call up to 20 people simultaneously without scheduling a meeting."
+          ]},
+          { type: "heading", text: "Managing Your Calls" },
+          { type: "bullets", items: [
+            "Calls section in left rail: view recent calls, voicemail, and speed dial contacts",
+            "Set up call forwarding: Calls → Settings → Call answering rules",
+            "Forward to voicemail when in a meeting: set a rule or toggle manually",
+            "Configure simultaneous ring to also ring your mobile — useful for on-call coverage",
+            "Voicemail transcription is auto-generated and viewable in the Calls section without listening"
+          ]},
+          { type: "heading", text: "Audio & Video Devices" },
+          { type: "bullets", items: [
+            "Test your devices before every meeting: Settings → Devices → Make a test call",
+            "Set your preferred speaker, microphone, and camera in Settings → Devices",
+            "Use a headset for calls — built-in laptop mic picks up keyboard and background noise",
+            "Noise suppression: Settings → Devices → Noise suppression → High (recommended for open office/DC floor)",
+            "Background blur or custom background: available in meeting settings or pre-call screen"
+          ]},
+          { type: "heading", text: "For IT Support Staff: What to Know" },
+          { type: "bullets", items: [
+            "Teams calling issues are commonly reported by end users — know how to triage them",
+            "Common issues: echo (mic + speaker feedback), can't hear others (output device wrong), camera not detected",
+            "First step always: Settings → Devices → verify correct devices are selected",
+            "Second step: Teams Settings → App Permissions → verify camera/mic access granted",
+            "If PSTN calls fail: check with Teams admin on dial plan and license assignment"
+          ]}
+        ],
+        quiz: [
+          { q: "What is the difference between a Teams VoIP call and a PSTN call?", a: "A Teams VoIP call is a free internet-based call between Teams users within the org. A PSTN call (if enabled by admin) lets you call external phone numbers using a dial pad, like a traditional desk phone." },
+          { q: "A user reports they can't hear other people in a Teams call. What is your first troubleshooting step?", a: "Go to Teams Settings → Devices and verify the correct audio output (speaker) device is selected. Wrong device selection is the most common cause." },
+          { q: "What setting should you enable for staff working in noisy environments like the DC floor?", a: "Settings → Devices → Noise suppression → High. This filters out background noise including fan hum and equipment sounds." }
+        ]
+      }
+    ]
+  },
+  {
+    module: 3,
+    theme: "Files, Apps & Integration",
+    icon: "◇",
+    lessons: [
+      {
+        id: 6, title: "Files, SharePoint & OneDrive", duration: "15 min", xp: 100,
+        tag: "USER",
+        content: [
+          { type: "intro", text: "Every file shared in Teams lives somewhere in Microsoft 365. Knowing where files are stored — and how to manage them — prevents lost documents, permission issues, and version conflicts." },
+          { type: "heading", text: "Where Files Live in Teams" },
+          { type: "table", headers: ["Where You Share", "Where It's Stored", "Who Can Access"], rows: [
+            ["Channel Files tab", "SharePoint site for that Team", "All Team members"],
+            ["Private chat attachment", "Sender's OneDrive", "Chat participants only"],
+            ["Group chat attachment", "Sender's OneDrive", "Chat participants only"],
+            ["Meeting chat file", "Sender's OneDrive", "Meeting participants only"],
+          ]},
+          { type: "heading", text: "Working with Files in Channels" },
+          { type: "bullets", items: [
+            "Upload files directly in the Files tab or by dragging into a channel post",
+            "Files are stored in SharePoint — accessible from Teams and from SharePoint Online",
+            "Create folders in the Files tab to organize channel documents",
+            "Open files in Teams (browser), or click Open in Desktop App for full Office features",
+            "Co-author in real time: multiple people can edit a Word/Excel/PowerPoint simultaneously",
+            "Version history: right-click a file → Version History → restore any previous version"
+          ]},
+          { type: "heading", text: "Sharing Files Properly" },
+          { type: "bullets", items: [
+            "Never share sensitive files via direct attachment in chat — use a SharePoint link instead",
+            "When sharing a link: verify permissions before sending (org-wide vs. specific people)",
+            "Copy link → Link settings → Choose who can access and whether they can edit",
+            "For IT documentation (runbooks, SOPs): keep in the IT Team SharePoint, not personal OneDrive"
+          ]},
+          { type: "heading", text: "OneDrive Integration" },
+          { type: "bullets", items: [
+            "Personal work files live in OneDrive — sync the desktop app for offline access",
+            "OneDrive sync client runs in the system tray — green check = synced, red X = error",
+            "Common sync error: file name contains illegal characters (< > : / \\ | ? *) — rename the file",
+            "Storage quota issues: report to Teams admin — license determines OneDrive quota"
+          ]}
+        ],
+        quiz: [
+          { q: "A user shares a file in a private Teams chat. Where is that file actually stored?", a: "In the sender's OneDrive. Only the chat participants can access it." },
+          { q: "Where should team IT documentation like runbooks and SOPs be stored in Teams?", a: "In the IT Team's SharePoint (accessible via the Files tab of the IT team channel), not in personal OneDrive." },
+          { q: "What does a red X on the OneDrive sync icon in the system tray indicate?", a: "A sync error — the file is not syncing to the cloud. Common causes include illegal characters in file names, storage quota exceeded, or connectivity issues." }
+        ]
+      },
+      {
+        id: 7, title: "Apps, Tabs & Integrations", duration: "15 min", xp: 100,
+        tag: "USER",
+        content: [
+          { type: "intro", text: "Teams is an app platform, not just a messaging tool. Adding the right apps and tabs to your channels eliminates context switching and brings your work tools together in one place." },
+          { type: "heading", text: "Adding Apps to Teams" },
+          { type: "bullets", items: [
+            "Click the + icon on any channel's tab bar to add a tab",
+            "Choose from built-in Microsoft apps (Planner, Forms, OneNote) or third-party apps",
+            "Apps can also be added to the left rail (pin them) for personal use",
+            "App availability is controlled by the Teams admin — not all apps are available in all orgs"
+          ]},
+          { type: "heading", text: "High-Value Apps for IT Support Staff" },
+          { type: "table", headers: ["App", "What It Does in Teams"], rows: [
+            ["Microsoft Planner", "Task board in a channel — assign, track, and update IT tickets visually"],
+            ["OneNote", "Shared notebook pinned to a channel — runbooks, SOPs, meeting notes"],
+            ["Forms", "Create surveys or quick approval forms — embed in a channel tab"],
+            ["Power Automate", "Automate workflows: e.g., post a Teams alert when a monitoring tool fires"],
+            ["ServiceNow (if licensed)", "View and update tickets directly in Teams without switching apps"],
+            ["Approvals", "Send and track approval requests without leaving Teams"],
+            ["Shifts", "Schedule management — on-call rotations for IT or DC floor coverage"],
+          ]},
+          { type: "heading", text: "Connectors & Incoming Webhooks" },
+          { type: "bullets", items: [
+            "Connectors send automated messages into a Teams channel from external systems",
+            "Incoming Webhook: a URL you paste into a monitoring tool (Nagios, Zabbix, PagerDuty) to post alerts directly into a channel",
+            "At Aligned: DC monitoring alerts can post to a #server-alerts channel via webhook — no manual intervention needed",
+            "Configure via channel → More options (…) → Connectors"
+          ]},
+          { type: "heading", text: "Teams Bots" },
+          { type: "bullets", items: [
+            "Bots are automated participants that respond to commands or post updates",
+            "Common: Polly (polls), Workbot (ServiceNow integration), Who (org chart lookup)",
+            "Admin-approved bots only — don't attempt to install unapproved bots",
+            "At Aligned: report any unauthorized bot or app installs to the Teams admin immediately"
+          ]}
+        ],
+        quiz: [
+          { q: "What is an Incoming Webhook in Teams and how is it useful for IT operations?", a: "An Incoming Webhook is a URL generated for a Teams channel that external tools (like Nagios, Zabbix, or PagerDuty) can POST alerts to. It automatically delivers monitoring alerts into a channel without manual action." },
+          { q: "Which Teams app would you use to manage on-call rotation schedules for IT staff?", a: "Microsoft Shifts — it handles schedule management including on-call rotations and can be pinned to an IT team channel." },
+          { q: "What controls which apps are available to install in a company's Teams environment?", a: "The Teams admin — they configure app permission policies that control which apps users can install or request." }
+        ]
+      }
+    ]
+  },
+  {
+    module: 4,
+    theme: "Teams Administration",
+    icon: "⬟",
+    lessons: [
+      {
+        id: 8, title: "Teams Admin Center Overview", duration: "15 min", xp: 100,
+        tag: "ADMIN",
+        content: [
+          { type: "intro", text: "The Microsoft Teams Admin Center (TAC) is where you manage every organizational setting for Teams. As an IT support tech at Aligned, you may have read access or limited admin rights. Understanding the TAC means you can triage issues, answer user questions accurately, and escalate with the right information." },
+          { type: "heading", text: "Accessing the Admin Center" },
+          { type: "bullets", items: [
+            "URL: admin.teams.microsoft.com",
+            "Requires Teams Administrator, Global Administrator, or a delegated admin role",
+            "Also accessible from Microsoft 365 Admin Center → Show all → Teams",
+            "At Aligned: confirm your admin access level with your manager before making changes"
+          ]},
+          { type: "heading", text: "TAC Navigation — Key Sections" },
+          { type: "table", headers: ["Section", "What You Manage Here"], rows: [
+            ["Users", "View and manage Teams settings per user — policies, calling, devices"],
+            ["Teams", "Create, edit, archive, or delete Teams. Manage membership and settings."],
+            ["Meetings", "Configure meeting policies, live events, and conference bridge settings"],
+            ["Messaging Policies", "Control what users can do in chat (GIFs, stickers, read receipts, etc.)"],
+            ["Voice", "Calling plans, dial plans, emergency addresses, phone number assignment"],
+            ["Devices", "Manage certified Teams Rooms devices, desk phones, panels"],
+            ["Apps", "Control which apps are available, set permission policies, manage bot access"],
+            ["Analytics & Reports", "Usage reports, call quality dashboard, device health"],
+            ["Org-Wide Settings", "External access, guest access, Teams upgrade settings"],
+          ]},
+          { type: "heading", text: "Most Common Admin Tasks" },
+          { type: "bullets", items: [
+            "Add or remove a user from a Team: Teams → select team → Members tab → Add",
+            "Reset a user's Teams client: not a TAC task — user-side or PowerShell",
+            "Check why a user can't access a feature: Users → select user → Policies tab",
+            "View call quality issues: Analytics & Reports → Call Quality Dashboard (CQD)",
+            "Enable or disable guest access: Org-Wide Settings → Guest Access"
+          ]},
+          { type: "heading", text: "Understanding Policies" },
+          { type: "bullets", items: [
+            "Teams uses policies to control features — Meeting policy, Messaging policy, App permission policy, etc.",
+            "Policies are assigned to users or groups — a user's effective behavior is determined by their assigned policies",
+            "Global (org-wide default) policy applies to all users not assigned a custom policy",
+            "At Aligned: never modify the Global policy without testing on a pilot group first"
+          ]}
+        ],
+        quiz: [
+          { q: "What URL do you navigate to for the Microsoft Teams Admin Center?", a: "admin.teams.microsoft.com" },
+          { q: "A user reports they can't use a Teams feature that others can. Where in the TAC do you check what policies are assigned to them?", a: "Users → select the user → Policies tab. This shows every policy currently assigned to that user." },
+          { q: "What is the Global policy in Teams administration?", a: "The org-wide default policy that applies to all users who have not been assigned a custom policy. Changes to it affect everyone without a specific policy assignment." }
+        ]
+      },
+      {
+        id: 9, title: "Managing Users, Teams & Licensing", duration: "15 min", xp: 100,
+        tag: "ADMIN",
+        content: [
+          { type: "intro", text: "User and license management is where IT support meets Teams administration. When someone joins Aligned, changes roles, or leaves — you're involved. Getting this right means users are productive from day one and former employees lose access immediately." },
+          { type: "heading", text: "Licensing Requirements for Teams" },
+          { type: "bullets", items: [
+            "Teams requires a Microsoft 365 or Office 365 license that includes Teams",
+            "Common licenses at companies like Aligned: Microsoft 365 Business Standard, E3, or E5",
+            "E5 includes advanced calling (Phone System) and compliance features",
+            "Assign licenses in Microsoft 365 Admin Center → Users → Active Users → select user → Licenses",
+            "No license = user can't log in to Teams at all"
+          ]},
+          { type: "heading", text: "Creating and Managing a Team" },
+          { type: "bullets", items: [
+            "TAC → Teams → Manage Teams → Add to create a new Team",
+            "Set: name, description, privacy (Private = invite-only, Public = anyone in org can join)",
+            "Add owners and members — owners can manage the team; members participate",
+            "Create channels within the team for topic organization",
+            "Archive a Team (not delete) when a project ends — preserves history, prevents new activity"
+          ]},
+          { type: "heading", text: "Onboarding a New User to Teams" },
+          { type: "bullets", items: [
+            "1. Assign M365 license in M365 Admin Center — Teams account auto-provisions within minutes",
+            "2. Add user to appropriate Teams (IT Support, All-Staff, department team) via TAC or team owner",
+            "3. Assign correct policy set if the user's role differs from the global default",
+            "4. Verify calling is configured if the user needs PSTN calling",
+            "5. Send the user a Teams quick-start guide — point them to Lesson 1 of this course"
+          ]},
+          { type: "heading", text: "Offboarding a User from Teams" },
+          { type: "bullets", items: [
+            "Disable account in Azure AD / Entra ID — Teams access is revoked immediately",
+            "Remove from all Teams and channels — done automatically when account is disabled",
+            "Reassign the user's phone number (if applicable) in TAC → Voice",
+            "Preserve their chat and channel history — it remains accessible to team members",
+            "Revoke license in M365 Admin Center to free it for reassignment",
+            "Follow Aligned's offboarding SOP — do not deviate from the checklist"
+          ]}
+        ],
+        quiz: [
+          { q: "A new employee was just set up in Active Directory but can't log into Teams. What is the first thing to check?", a: "Verify a Microsoft 365 license with Teams is assigned in the M365 Admin Center (Users → Active Users → Licenses). No license = no Teams access." },
+          { q: "What is the difference between archiving and deleting a Team?", a: "Archiving preserves all history and content but prevents new activity — the Team becomes read-only. Deleting permanently removes the Team and its content (recoverable for a limited time from the admin center)." },
+          { q: "When offboarding an employee, what is the fastest way to immediately revoke their Teams access?", a: "Disable their account in Azure AD / Entra ID. This immediately revokes access to Teams and all M365 services." }
+        ]
+      },
+      {
+        id: 10, title: "Security, Compliance & Guest Access", duration: "15 min", xp: 100,
+        tag: "ADMIN",
+        content: [
+          { type: "intro", text: "Data centers handle sensitive infrastructure — network diagrams, access credentials, customer data, and operational runbooks. Teams security and compliance settings directly protect that information. This is not optional configuration — it is a professional obligation." },
+          { type: "heading", text: "External Access vs. Guest Access" },
+          { type: "table", headers: ["Type", "Who It Applies To", "What They Can Do"], rows: [
+            ["External Access (Federation)", "Users at other Microsoft 365 orgs", "Chat and call with internal users. Cannot access Teams/channels/files."],
+            ["Guest Access", "Anyone added via email invitation", "Join Teams, participate in channels, access files. Full team member."],
+          ]},
+          { type: "bullets", items: [
+            "Configure external access: TAC → Org-Wide Settings → External Access",
+            "Configure guest access: TAC → Org-Wide Settings → Guest Access",
+            "At Aligned: confirm guest access policy before inviting any external vendor or contractor",
+            "Guests can only access Teams they are explicitly invited to — they cannot discover other Teams"
+          ]},
+          { type: "heading", text: "Conditional Access & MFA" },
+          { type: "bullets", items: [
+            "Configured in Azure AD (Entra ID) Conditional Access — not in Teams admin center directly",
+            "Require MFA for all Teams logins — standard at any security-conscious organization",
+            "Block access from unmanaged devices: Conditional Access policy requiring compliant or hybrid-joined device",
+            "If a user is blocked from Teams after a device change, check Conditional Access policy compliance"
+          ]},
+          { type: "heading", text: "Data Loss Prevention (DLP)" },
+          { type: "bullets", items: [
+            "DLP policies can scan Teams messages and files for sensitive data (SSNs, credit cards, etc.)",
+            "Configured in Microsoft Purview Compliance Center, not Teams admin",
+            "At Aligned: never share server credentials, IP schemas, or customer data in Teams chat — DLP may flag or block it, and it is against policy regardless",
+            "Violations are logged and reviewed by compliance teams — even in 'private' chats"
+          ]},
+          { type: "heading", text: "Retention Policies" },
+          { type: "bullets", items: [
+            "Teams messages and files can be subject to retention policies — data may be kept for legal/compliance reasons",
+            "Configured in Microsoft Purview → Retention Policies",
+            "Even deleted messages may be retained in compliance storage if a policy is active",
+            "As IT staff: understand that nothing in Teams is truly ephemeral if retention is configured",
+            "eDiscovery: legal teams can search all Teams content for litigation holds — another reason to maintain professional communication"
+          ]},
+          { type: "heading", text: "Security Best Practices for IT Staff" },
+          { type: "bullets", items: [
+            "Never share passwords, keys, or credentials via Teams chat — use a PAM tool (CyberArk, etc.)",
+            "Report suspicious Teams messages or phishing attempts to security team immediately",
+            "Don't install unauthorized apps or bots — they can access channel data",
+            "Lock down external access to only trusted domains if Aligned does not need open federation",
+            "Review guest access quarterly — remove guests who no longer need access"
+          ]}
+        ],
+        quiz: [
+          { q: "What is the difference between External Access (Federation) and Guest Access in Teams?", a: "External Access allows users at other Microsoft 365 orgs to chat/call your users, but they cannot join your Teams or access files. Guest Access gives invited external users full participation in a specific Team including channels and files." },
+          { q: "Where are Teams Data Loss Prevention (DLP) policies configured?", a: "In Microsoft Purview Compliance Center — not in the Teams Admin Center. DLP is a compliance platform that scans Teams messages and files for sensitive data." },
+          { q: "A user says they can't access Teams from their personal laptop after it was recently added to their account. What is the likely cause?", a: "A Conditional Access policy requiring a compliant or hybrid Azure AD-joined device. Personal devices often fail compliance checks. The user needs to use a managed corporate device or enroll the device in Intune." }
+        ]
+      },
+      {
+        id: 11, title: "Troubleshooting Teams Issues", duration: "15 min", xp: 100,
+        tag: "ADMIN",
+        content: [
+          { type: "intro", text: "Teams issues are among the most common tickets IT support fields. This lesson gives you a structured triage playbook so you resolve them fast and escalate with the right information when needed." },
+          { type: "heading", text: "Troubleshooting Framework" },
+          { type: "bullets", items: [
+            "1. Scope: Is it one user or multiple? One device or all devices? One feature or Teams entirely?",
+            "2. Reproduce: Can you reproduce the issue yourself or on another account?",
+            "3. Recent changes: New device, OS update, password change, policy change?",
+            "4. Check service health: admin.microsoft.com → Health → Service Health → Teams",
+            "5. Collect logs before escalating (see below)"
+          ]},
+          { type: "heading", text: "Common Issues & Resolutions" },
+          { type: "table", headers: ["Issue", "First Steps"], rows: [
+            ["Can't sign in to Teams", "Check M365 license assigned. Check Azure AD account not blocked. Check MFA setup. Try browser version at teams.microsoft.com."],
+            ["Audio/video not working in meetings", "Settings → Devices → verify correct mic/speaker/camera. Test call. Check OS-level app permissions."],
+            ["Missing a Team or channel", "Check if team is archived or user was removed. Check Teams admin center → Teams."],
+            ["Can't share screen", "Check meeting policy in TAC allows screen sharing. Check OS screen recording permission (macOS)."],
+            ["Messages not sending", "Check network/VPN. Sign out and back in. Check if DLP policy is blocking content."],
+            ["Teams running slow or crashing", "Clear Teams cache (see below). Update Teams client. Check available RAM and disk."],
+            ["Guest can't access Team", "Verify guest access is enabled in TAC. Verify they accepted the email invite. Check Azure AD guest account created."],
+            ["Call quality poor", "Check CQD in TAC for the specific call. Check user's network (wired vs Wi-Fi, VPN impact). Check headset/device."],
+          ]},
+          { type: "heading", text: "Clearing the Teams Cache" },
+          { type: "bullets", items: [
+            "Fully quit Teams (right-click system tray icon → Quit)",
+            "Windows: navigate to %appdata%\\Microsoft\\Teams",
+            "Delete the contents of these folders: Cache, blob_storage, databases, GPUCache, IndexedDB, Local Storage, tmp",
+            "Do NOT delete the entire Teams folder — only the contents of those subfolders",
+            "Restart Teams — it will rebuild the cache on login"
+          ]},
+          { type: "heading", text: "Collecting Logs for Escalation" },
+          { type: "bullets", items: [
+            "Desktop logs: Ctrl + Alt + Shift + 1 in the Teams app — logs saved to Downloads folder",
+            "Or: Help menu → Collect support files",
+            "Include: exact error message, time of occurrence, affected user's UPN, and steps to reproduce",
+            "For call quality issues: pull the specific call record from CQD in TAC before escalating to Microsoft"
+          ]}
+        ],
+        quiz: [
+          { q: "A user reports Teams is running slowly and freezing. What is your first resolution step?", a: "Clear the Teams cache: quit Teams fully, navigate to %appdata%\\Microsoft\\Teams, delete the contents of Cache, blob_storage, databases, and other subfolders, then restart Teams." },
+          { q: "Where do you check if a Microsoft Teams outage is causing widespread issues?", a: "Microsoft 365 Admin Center → Health → Service Health → Teams. This shows active incidents and advisories." },
+          { q: "How do you collect Teams desktop logs to include when escalating a ticket to Microsoft?", a: "Press Ctrl + Alt + Shift + 1 in the Teams app, or go to Help → Collect support files. Logs are saved to the Downloads folder." }
+        ]
+      },
+      {
+        id: 12, title: "Teams Best Practices & Governance", duration: "15 min", xp: 100,
+        tag: "ADMIN",
+        content: [
+          { type: "intro", text: "Teams sprawl is real. Organizations that don't govern Teams creation end up with hundreds of abandoned teams, duplicate channels, and no one knowing where to find anything. As IT staff at Aligned, you play a role in maintaining a clean, well-governed Teams environment." },
+          { type: "heading", text: "Teams Naming Conventions" },
+          { type: "bullets", items: [
+            "Enforce a naming convention before Teams proliferate: [Dept]-[Purpose] (e.g., IT-Helpdesk, DC-Operations, HR-Onboarding)",
+            "Configure naming policy in Azure AD: prefix/suffix rules and blocked words",
+            "TAC → Teams → Teams Settings → Naming Policy links to Azure AD configuration",
+            "Consistent naming makes Teams searchable and prevents duplicate creation"
+          ]},
+          { type: "heading", text: "Controlling Team Creation" },
+          { type: "bullets", items: [
+            "By default, any user can create a Team — this leads to sprawl quickly",
+            "Restrict Team creation to IT or designated owners via Azure AD group policy",
+            "Implement a request process: users submit a request form (Teams + Power Automate) → IT provisions",
+            "At Aligned: confirm the current team creation policy with your manager"
+          ]},
+          { type: "heading", text: "Lifecycle Management" },
+          { type: "bullets", items: [
+            "Set expiration policies: Teams that have no activity for X days prompt the owner to renew or let expire",
+            "Configure in Azure AD → Groups → Expiration",
+            "Expired Teams are soft-deleted — recoverable for 30 days before permanent deletion",
+            "Archive completed project teams rather than deleting — preserves audit trail",
+            "Review all active Teams quarterly — identify and archive orphaned or inactive ones"
+          ]},
+          { type: "heading", text: "Channel Best Practices" },
+          { type: "bullets", items: [
+            "Keep channels focused and few — too many channels create noise and confusion",
+            "Standard channels: visible to all team members. Private channels: subset of members only.",
+            "Shared channels: cross-team collaboration without adding people as team members (requires configuration)",
+            "Pin high-traffic tabs (Files, Planner, ServiceNow) so they're always visible",
+            "Archive channels that are no longer active — keeps the interface clean"
+          ]},
+          { type: "heading", text: "Governance Checklist (Aligned IT Responsibility)" },
+          { type: "bullets", items: [
+            "□ All Teams follow the naming convention",
+            "□ Every Team has at least two owners (never only one — owner departure = orphaned team)",
+            "□ Guest access is reviewed quarterly",
+            "□ Inactive Teams are archived or expired",
+            "□ Sensitive Teams (executive, security, HR) are set to Private",
+            "□ App permission policies restrict unauthorized third-party apps",
+            "□ DLP policies are in place and tested",
+            "□ Service Health is checked at the start of every shift"
+          ]}
+        ],
+        quiz: [
+          { q: "Why should every Team have at least two owners?", a: "If the only owner leaves the organization or loses access, the Team becomes orphaned — no one can manage membership, settings, or channels. Two owners prevents this single point of failure." },
+          { q: "What happens to a Team when its expiration policy triggers and the owner doesn't renew it?", a: "The Team is soft-deleted — it's recoverable for 30 days before permanent deletion. This is why expiration policies include owner notifications before expiry." },
+          { q: "What is the difference between a Private channel and a Shared channel in Teams?", a: "A Private channel is only visible to a subset of members within the same Team. A Shared channel allows collaboration with members from other Teams or external orgs without adding them as full team members." }
+        ]
+      }
+    ]
+  }
+];
+
+const allLessons = curriculum.flatMap(m => m.lessons);
+
+function renderContent(blocks) {
+  return blocks.map((block, i) => {
+    if (block.type === 'intro') return (
+      <p key={i} style={{ fontSize: 13, lineHeight: 1.8, color: '#a0b4c8', marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid #1e2235` }}>{block.text}</p>
+    );
+    if (block.type === 'heading') return (
+      <p key={i} style={{ fontWeight: 700, color: ACCENT, marginTop: 20, marginBottom: 8, fontSize: 13, letterSpacing: '0.04em' }}>▸ {block.text}</p>
+    );
+    if (block.type === 'bullets') return (
+      <ul key={i} style={{ listStyle: 'none', marginBottom: 12 }}>
+        {block.items.map((item, j) => {
+          const parts = item.split(/\*\*(.*?)\*\*/g);
+          return (
+            <li key={j} style={{ display: 'flex', gap: 8, marginBottom: 5, fontSize: 13, lineHeight: 1.6 }}>
+              <span style={{ color: PURPLE, flexShrink: 0, marginTop: 1 }}>›</span>
+              <span style={{ color: '#c8d6e5' }}>
+                {parts.map((p, k) => k % 2 === 1
+                  ? <strong key={k} style={{ color: ACCENT }}>{p}</strong>
+                  : p
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    );
+    if (block.type === 'table') return (
+      <div key={i} style={{ overflowX: 'auto', marginBottom: 16 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <thead>
+            <tr>
+              {block.headers.map((h, j) => (
+                <th key={j} style={{ padding: '8px 12px', textAlign: 'left', background: PURPLE_BG, color: ACCENT, borderBottom: `2px solid ${PURPLE}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {block.rows.map((row, j) => (
+              <tr key={j} style={{ borderBottom: '1px solid #1e2235' }}>
+                {row.map((cell, k) => (
+                  <td key={k} style={{ padding: '7px 12px', color: k === 0 ? '#8a9ab4' : '#c8d6e5', verticalAlign: 'top' }}>{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+    return null;
+  });
+}
+
+function App() {
+  const [currentLesson, setCurrentLesson] = useState(null);
+  const [completed, setCompleted] = useState([]);
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [totalXP, setTotalXP] = useState(0);
+  const [view, setView] = useState('dashboard');
+
+  const openLesson = (lesson) => { setCurrentLesson(lesson); setQuizIndex(0); setShowAnswer(false); setView('lesson'); };
+  const startQuiz = () => { setQuizIndex(0); setShowAnswer(false); setView('quiz'); };
+  const nextQ = () => {
+    if (quizIndex < currentLesson.quiz.length - 1) { setQuizIndex(q => q + 1); setShowAnswer(false); }
+    else {
+      if (!completed.includes(currentLesson.id)) { setCompleted(p => [...p, currentLesson.id]); setTotalXP(x => x + currentLesson.xp); }
+      setView('complete');
+    }
+  };
+
+  const progress = (completed.length / allLessons.length) * 100;
+
+  if (view === 'dashboard') return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0c14', minHeight: '100vh', color: '#c8d6e5' }}>
+      {/* Header */}
+      <div style={{ background: '#0d0f1e', borderBottom: '1px solid #6264a722', padding: '20px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, letterSpacing: '0.3em', color: '#6264a799', marginBottom: 4 }}>ALIGNED DATA CENTERS</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 22, fontWeight: 900, color: '#a9abdf', letterSpacing: '0.04em' }}>MICROSOFT TEAMS</div>
+            <div style={{ fontSize: 11, color: '#3a4a6a', marginTop: 3 }}>Admin & User Mini Course · 12 Lessons · 15 Min Each</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: '#3a4a6a', letterSpacing: '0.1em' }}>TOTAL XP</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 30, fontWeight: 900, color: '#6264a7' }}>{totalXP}</div>
+            <div style={{ fontSize: 11, color: '#3a4a6a' }}>{completed.length} / {allLessons.length} complete</div>
+          </div>
+        </div>
+        <div style={{ marginTop: 14, height: 3, background: '#1e2235', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${PURPLE}, ${ACCENT})`, transition: 'width 0.5s ease' }} />
+        </div>
+        {/* Legend */}
+        <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+          <span style={{ fontSize: 10, color: '#5a6a8a' }}>
+            <span style={{ background: PURPLE_BG, color: ACCENT, padding: '2px 6px', borderRadius: 2, marginRight: 6, border: `1px solid ${PURPLE}44` }}>USER</span>
+            End-user skills
+          </span>
+          <span style={{ fontSize: 10, color: '#5a6a8a' }}>
+            <span style={{ background: '#1a2a1a', color: '#6abf69', padding: '2px 6px', borderRadius: 2, marginRight: 6, border: '1px solid #6abf6944' }}>ADMIN</span>
+            Admin / IT skills
+          </span>
+        </div>
+      </div>
+
+      <div style={{ padding: '20px 24px', maxWidth: 960, margin: '0 auto' }}>
+        {curriculum.map(mod => (
+          <div key={mod.module} style={{ marginBottom: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 16, color: PURPLE }}>{mod.icon}</span>
+              <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, letterSpacing: '0.2em', color: '#6264a766', border: '1px solid #6264a722', padding: '3px 8px', borderRadius: 2 }}>MODULE {mod.module}</span>
+              <span style={{ fontSize: 13, color: '#8a9ab4', fontWeight: 600 }}>{mod.theme}</span>
+              <div style={{ flex: 1, height: 1, background: '#6264a711' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+              {mod.lessons.map(lesson => {
+                const done = completed.includes(lesson.id);
+                const isAdmin = lesson.tag === 'ADMIN';
+                return (
+                  <div key={lesson.id} className="lesson-card" onClick={() => openLesson(lesson)}
+                    style={{ border: `1px solid ${done ? '#6264a744' : '#1e2235'}`, borderRadius: 4, padding: '14px 16px', background: done ? '#12152a' : '#0d0f1e', position: 'relative', overflow: 'hidden' }}>
+                    {done && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${PURPLE}, ${ACCENT})` }} />}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, color: done ? PURPLE : '#2a3a5a', fontWeight: 700 }}>LESSON {lesson.id}</span>
+                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 2,
+                        background: isAdmin ? '#1a2a1a' : PURPLE_BG,
+                        color: isAdmin ? '#6abf69' : ACCENT,
+                        border: `1px solid ${isAdmin ? '#6abf6933' : PURPLE + '44'}` }}>
+                        {lesson.tag}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: done ? '#c8d6e5' : '#8a9ab4', lineHeight: 1.4, marginBottom: 6 }}>{lesson.title}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, color: '#2a3a5a' }}>{lesson.duration} · {lesson.quiz.length} quiz questions</span>
+                      {done ? <span style={{ fontSize: 10, color: PURPLE }}>✓ +{lesson.xp}XP</span> : <span style={{ fontSize: 10, color: '#2a3a5a' }}>{lesson.xp} XP</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        <div style={{ border: '1px solid #6264a722', borderRadius: 4, padding: '14px 16px', background: '#0d0f1e', marginTop: 8 }}>
+          <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em', marginBottom: 6 }}>💡 FOR IT SUPPORT STAFF</div>
+          <div style={{ fontSize: 12, color: '#3a4a6a', lineHeight: 1.6 }}>Complete the USER lessons first — they teach you what your end users experience, which makes you better at supporting them. Then tackle the ADMIN lessons to build administrative capability. Both tracks are relevant to your hybrid role at Aligned.</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (view === 'lesson' && currentLesson) return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0c14', minHeight: '100vh', color: '#c8d6e5' }}>
+      <div style={{ background: '#0d0f1e', borderBottom: '1px solid #6264a722', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        <button className="btn-ghost" onClick={() => setView('dashboard')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← BACK</button>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em' }}>LESSON {currentLesson.id} · {currentLesson.tag} · {currentLesson.duration}</div>
+          <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, color: ACCENT, marginTop: 2 }}>{currentLesson.title}</div>
+        </div>
+        <button className="btn-primary" onClick={startQuiz} style={{ padding: '8px 18px', fontSize: 12, borderRadius: 2 }}>START QUIZ →</button>
+      </div>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '28px 24px' }}>
+        {renderContent(currentLesson.content)}
+        <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid #1e2235' }}>
+          <button className="btn-primary" onClick={startQuiz} style={{ padding: '10px 24px', fontSize: 13, borderRadius: 2, width: '100%' }}>TEST YOUR KNOWLEDGE →</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (view === 'quiz' && currentLesson) {
+    const q = currentLesson.quiz[quizIndex];
+    return (
+      <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0c14', minHeight: '100vh', color: '#c8d6e5' }}>
+        <div style={{ background: '#0d0f1e', borderBottom: '1px solid #6264a722', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button className="btn-ghost" onClick={() => setView('lesson')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← LESSON</button>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em' }}>QUIZ · LESSON {currentLesson.id}</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 13, color: ACCENT, marginTop: 2 }}>{currentLesson.title}</div>
+          </div>
+          <span style={{ fontSize: 12, color: '#3a4a6a' }}>{quizIndex + 1} / {currentLesson.quiz.length}</span>
+        </div>
+        <div style={{ maxWidth: 620, margin: '60px auto', padding: '0 24px' }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.2em', color: '#6264a766', marginBottom: 20 }}>QUESTION {quizIndex + 1}</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#c8d6e5', lineHeight: 1.5, marginBottom: 32 }}>{q.q}</div>
+          {!showAnswer
+            ? <button className="btn-primary" onClick={() => setShowAnswer(true)} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, width: '100%' }}>REVEAL ANSWER</button>
+            : <div>
+                <div style={{ border: `1px solid ${PURPLE}44`, borderRadius: 4, padding: '16px 20px', background: PURPLE_BG, marginBottom: 20 }}>
+                  <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em', marginBottom: 8 }}>ANSWER</div>
+                  <div style={{ fontSize: 14, color: ACCENT, lineHeight: 1.6 }}>{q.a}</div>
+                </div>
+                <button className="btn-primary" onClick={nextQ} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, width: '100%' }}>
+                  {quizIndex < currentLesson.quiz.length - 1 ? 'NEXT QUESTION →' : 'COMPLETE LESSON ✓'}
+                </button>
+              </div>
+          }
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'complete') return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0c14', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center', padding: 40 }}>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 52, color: PURPLE, marginBottom: 12 }}>✓</div>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 18, color: ACCENT, marginBottom: 8 }}>LESSON COMPLETE</div>
+        <div style={{ fontSize: 13, color: '#8a9ab4', marginBottom: 4 }}>{currentLesson?.title}</div>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 34, color: '#a9abdf', margin: '20px 0' }}>+{currentLesson?.xp} XP</div>
+        <div style={{ fontSize: 12, color: '#3a4a6a', marginBottom: 32 }}>Total XP: {totalXP} · {completed.length} / {allLessons.length} complete</div>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button className="btn-primary" onClick={() => setView('dashboard')} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2 }}>← CURRICULUM</button>
+          {currentLesson && currentLesson.id < allLessons.length && (
+            <button className="btn-primary" onClick={() => openLesson(allLessons[currentLesson.id])} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, background: ACCENT, color: '#0a0c14' }}>
+              NEXT LESSON →
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
