@@ -1,31 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'self';">
-<meta http-equiv="X-Frame-Options" content="ALLOWALL">
-<script>
-  // Intercept any attempt to navigate away from this page
-  window.addEventListener('click', function(e) {
-    var target = e.target.closest('a');
-    if (target && target.href && !target.href.startsWith('#') && !target.href.startsWith('javascript')) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-  }, true);
-  // Block window.open calls
-  window.open = function() { return null; };
-  // Block location changes
-  var _loc = window.location.href;
-  Object.defineProperty(window, 'location', {
-    get: function() { return { href: _loc, assign: function(){}, replace: function(){}, reload: function(){} }; },
-    set: function() {}
-  });
-</script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Data Center Technician — 15-Min Daily Lessons</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://docs.google.com; form-action https://docs.google.com; base-uri 'self';">
+<script>
+  window.addEventListener('click', function(e) {
+    var target = e.target.closest('a');
+    if (target && target.href && !target.href.startsWith('#') && !target.href.startsWith('javascript')) {
+      e.preventDefault(); e.stopPropagation(); return false;
+    }
+  }, true);
+  window.open = function() { return null; };
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -35,22 +23,43 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body, #root { height: 100%; }
   body { background: #0a0f1a; font-family: 'IBM Plex Mono', monospace; color: #c8d6e5; }
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: #0a0f1a; }
-  ::-webkit-scrollbar-thumb { background: #00d4ff33; border-radius: 2px; }
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #0a0f1a; } ::-webkit-scrollbar-thumb { background: #00d4ff33; border-radius: 2px; }
   .btn-primary { background: #00d4ff; color: #0a0f1a; border: none; font-family: 'IBM Plex Mono', monospace; font-weight: 700; letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; }
   .btn-primary:hover { background: #00ffea; transform: translateY(-1px); }
   .btn-ghost { background: transparent; color: #5a7a9a; border: 1px solid #1a2a3a; font-family: 'IBM Plex Mono', monospace; cursor: pointer; transition: all 0.2s; }
   .btn-ghost:hover { border-color: #00d4ff44; color: #8ab4d4; }
   .lesson-card { transition: all 0.2s; cursor: pointer; }
   .lesson-card:hover { border-color: #00d4ff !important; background: #0f1e2e !important; }
-  .lesson-card:hover .lesson-num { color: #00d4ff; }
+  .option-btn { width: 100%; text-align: left; padding: 14px 18px; border-radius: 4px; border: 1px solid #1a2a3a; background: #0d1420; color: #c8d6e5; font-family: 'IBM Plex Mono', monospace; font-size: 13px; cursor: pointer; transition: all 0.18s; margin-bottom: 10px; line-height: 1.5; }
+  .option-btn:hover:not(:disabled) { border-color: #00d4ff66; background: #0f1e2e; }
+  .option-correct { border-color: #00c853 !important; background: #0a2a0a !important; color: #69f0ae !important; }
+  .option-wrong { border-color: #ff1744 !important; background: #2a0a0a !important; color: #ff8a80 !important; }
+  .option-reveal { border-color: #00c85344 !important; background: #0a1f0a !important; color: #69f0ae99 !important; }
   .progress-bar-inner { transition: width 0.5s ease; }
+  input[type=text], input[type=email] { background: #0d1420; border: 1px solid #1a2a3a; color: #c8d6e5; font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 14px; border-radius: 4px; width: 100%; outline: none; transition: border-color 0.2s; }
+  input[type=text]:focus, input[type=email]:focus { border-color: #00d4ff66; }
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
+const { useState, useEffect } = React;
+
+// ─────────────────────────────────────────
+// GOOGLE FORM CONFIGURATION
+// Replace these with your actual Google Form values after creating the form
+// ─────────────────────────────────────────
+const GOOGLE_FORM_CONFIG = {
+  formId: "1FAIpQLSdFJXSlyMbvwuVYmNVnhgs-zFtRh5nogkuM2e_MtV2y4tJW0A",
+  fields: {
+    studentName: "entry.1022229287",
+    studentLoginId: "entry.2133439977"
+    totalScore: "entry.1095302319",
+    totalPossible: "entry.1860480276",
+    lessonBreakdown: "entry.732985953",
+    completionDate: "entry.385037905"
+  }
+};
 
 const curriculum = [
   {
@@ -58,153 +67,82 @@ const curriculum = [
     lessons: [
       {
         day: 1, title: "What Is a Data Center?", duration: "15 min", xp: 100,
-        content: `A data center is a facility that houses computing infrastructure — servers, storage, networking, and the systems that keep them running. As a desktop tech, you already know individual PCs. A data center is that concept scaled to hundreds or thousands of machines, all working together.
-
-**Key Concepts:**
-• **Colocation (Colo):** A facility where multiple companies rent rack space. You maintain your gear; they maintain the building.
-• **Enterprise DC:** A company's private data center — you own and operate everything.
-• **Cloud DC:** Hyperscalers like AWS, Azure, Google. Massive, highly automated.
-• **Edge DC:** Small, distributed sites closer to end users.
-
-**How This Relates to Your Desktop Experience:**
-You already troubleshoot hardware, swap components, and manage OS issues. In a DC, those same skills apply — just at scale. A server is essentially a rackmounted, headless PC optimized for reliability and density.
-
-**Key Vocabulary:**
-- **PUE (Power Usage Effectiveness):** Ratio of total facility power to IT equipment power. Lower = more efficient. World-class DCs aim for 1.1–1.2.
-- **Uptime Tier:** A rating system (Tier I–IV) that describes redundancy and availability. Tier IV = 99.995% uptime.
-- **SLA:** Service Level Agreement — contractual uptime/performance guarantees.`,
+        content: [
+          { type: "heading", text: "Overview" },
+          { type: "body", text: "A data center is a facility that houses computing infrastructure — servers, storage, networking, and the systems that keep them running. As a desktop tech, you already know individual PCs. A data center is that concept scaled to hundreds or thousands of machines, all working together." },
+          { type: "heading", text: "Key Facility Types" },
+          { type: "bullets", items: ["Colocation (Colo): Multiple companies rent rack space. You maintain your gear; they maintain the building.", "Enterprise DC: A company's private data center — you own and operate everything.", "Cloud DC: Hyperscalers like AWS, Azure, Google. Massive, highly automated.", "Edge DC: Small, distributed sites closer to end users."] },
+          { type: "heading", text: "Key Vocabulary" },
+          { type: "bullets", items: ["PUE (Power Usage Effectiveness): Ratio of total facility power to IT equipment power. Lower = more efficient. World-class DCs aim for 1.1–1.2.", "Uptime Tier: A rating system (Tier I–IV) describing redundancy and availability. Tier IV = 99.995% uptime.", "SLA: Service Level Agreement — contractual uptime/performance guarantees."] }
+        ],
         quiz: [
-          { q: "What does PUE stand for?", a: "Power Usage Effectiveness" },
-          { q: "Which Uptime Tier represents the highest redundancy?", a: "Tier IV" },
-          { q: "What is a colocation facility?", a: "A facility where multiple companies rent rack space; the facility maintains the building, tenants maintain their equipment." }
+          { q: "What does PUE stand for?", options: ["Power Usage Effectiveness", "Primary Utility Efficiency", "Peak Uptime Evaluation", "Power Unit Exchange"], correct: 0 },
+          { q: "Which Uptime Tier represents the highest redundancy and availability?", options: ["Tier I", "Tier II", "Tier III", "Tier IV"], correct: 3 },
+          { q: "What is a colocation facility?", options: ["A cloud-only data center run by AWS or Azure", "A facility where multiple companies rent rack space and the facility maintains the building", "A single-company private data center", "A mobile edge computing site"], correct: 1 }
         ]
       },
       {
         day: 2, title: "Data Center Physical Layout", duration: "15 min", xp: 100,
-        content: `Understanding the physical layout of a DC is critical for navigation, safety, and efficiency. Every professional DC follows similar organizational principles.
-
-**The Raised Floor:**
-Most DCs have a raised floor (12–36 inches) beneath which cold air is distributed. Perforated floor tiles direct airflow upward into equipment. Never block perforated tiles — this disrupts cooling.
-
-**Hot Aisle / Cold Aisle:**
-This is one of the most important concepts you'll learn. Equipment racks are arranged in alternating rows:
-• **Cold Aisle:** Rack fronts face each other. Cold air comes up from floor tiles here. Equipment intakes cold air from the front.
-• **Hot Aisle:** Rack backs face each other. Hot exhaust air exits here and is captured for return to CRAC units.
-
-This prevents hot and cold air mixing, which dramatically improves cooling efficiency.
-
-**Zones You'll Navigate:**
-- **MDA (Main Distribution Area):** Core networking and power distribution
-- **HDA (Horizontal Distribution Area):** Intermediate distribution per zone
-- **EDA (Equipment Distribution Area):** Where servers actually live
-- **Cage:** An enclosed, lockable area within a colo — a tenant's private space
-- **Meet-Me Room (MMR):** Where external carriers connect to the facility
-
-**From Your Desktop Experience:**
-Think of MDA → HDA → EDA like the network topology you're used to: ISP → Core Switch → Access Switch → Workstation. Same hierarchy, bigger scale.`,
+        content: [
+          { type: "heading", text: "The Raised Floor" },
+          { type: "body", text: "Most DCs have a raised floor (12–36 inches) beneath which cold air is distributed. Perforated floor tiles direct airflow upward into equipment. Never block perforated tiles — this disrupts cooling for the entire row." },
+          { type: "heading", text: "Hot Aisle / Cold Aisle" },
+          { type: "bullets", items: ["Cold Aisle: Rack fronts face each other. Cold air rises from perforated floor tiles here. Equipment draws cold air from the front.", "Hot Aisle: Rack backs face each other. Hot exhaust exits here and is captured for return to CRAC units.", "This arrangement prevents hot and cold air mixing, dramatically improving cooling efficiency."] },
+          { type: "heading", text: "Key Zones" },
+          { type: "bullets", items: ["MDA (Main Distribution Area): Core networking and primary power distribution.", "HDA (Horizontal Distribution Area): Intermediate distribution per zone.", "EDA (Equipment Distribution Area): Where servers and storage actually live.", "Cage: An enclosed, lockable tenant space within a colo facility.", "Meet-Me Room (MMR): Where external carriers connect to the facility."] }
+        ],
         quiz: [
-          { q: "In a hot aisle/cold aisle setup, which direction do rack fronts face in the cold aisle?", a: "Rack fronts face each other (toward the cold aisle)" },
-          { q: "What is a raised floor used for?", a: "Cold air distribution beneath the floor, delivered up through perforated tiles" },
-          { q: "What does MDA stand for?", a: "Main Distribution Area" }
+          { q: "In a hot aisle/cold aisle layout, what faces the cold aisle?", options: ["The back of every rack", "The front of every rack", "The tops of the racks", "The PDUs and cable trays"], correct: 1 },
+          { q: "What is the raised floor primarily used for in a data center?", options: ["Structural support for heavy server racks", "Cold air distribution delivered up through perforated tiles", "Cable management for power and data", "Water distribution for cooling systems"], correct: 1 },
+          { q: "What does MDA stand for?", options: ["Managed Distribution Architecture", "Main Distribution Area", "Modular Data Array", "Monitored Device Access"], correct: 1 }
         ]
       },
       {
         day: 3, title: "Rack Standards & U Space", duration: "15 min", xp: 100,
-        content: `As a DC tech, you'll live and breathe rack units. This is one area where your desktop experience directly translates.
-
-**The Rack Unit (U):**
-• 1U = 1.75 inches of rack height
-• Standard racks are 42U tall
-• Equipment is measured in U: 1U server, 2U server, 4U GPU server, etc.
-
-**Standard Rack Dimensions:**
-- **Width:** 19 inches (EIA-310 standard) — the mounting width for equipment rails
-- **Depth:** Typically 900mm–1200mm for modern servers
-- **Height:** 42U is standard; 45U and 48U exist in some facilities
-
-**Rack Components You'll Handle:**
-- **Rails:** Slide-out mounting hardware — most enterprise gear (Dell, HP, Lenovo) ships with tool-less rails
-- **Cable Management:** Vertical and horizontal CMA (Cable Management Arm) — keeps cables organized and allows servers to slide out
-- **Blanking Panels:** 1U or 2U plastic panels filling empty rack space. NEVER remove these — they prevent hot air recirculation.
-- **PDU (Power Distribution Unit):** The rack's power strip, often with remote monitoring. Comes in basic, metered, switched, and intelligent variants.
-- **Patch Panel:** Terminates structured cabling; connects to switches via short patch cables
-
-**Pro Tips from Day 1:**
-1. Always fill empty U space with blanking panels
-2. Label everything before it goes in the rack
-3. Document your rack layout (many facilities use DCIM software for this)
-4. Plan cable routing before racking equipment`,
+        content: [
+          { type: "heading", text: "The Rack Unit (U)" },
+          { type: "bullets", items: ["1U = 1.75 inches of rack height", "Standard racks are 42U tall", "Equipment is measured in U: 1U server, 2U server, 4U GPU server, etc."] },
+          { type: "heading", text: "Standard Rack Dimensions" },
+          { type: "bullets", items: ["Width: 19 inches (EIA-310 standard) — the mounting width for all rackmount equipment", "Depth: Typically 900mm–1200mm for modern servers", "Height: 42U is standard; 45U and 48U exist in some facilities"] },
+          { type: "heading", text: "Critical Rack Components" },
+          { type: "bullets", items: ["Rails: Slide-out mounting hardware — most enterprise gear ships with tool-less rails.", "Blanking Panels: Plastic fillers for empty U slots. NEVER remove — they prevent hot air recirculation.", "PDU (Power Distribution Unit): The rack's power strip, often with remote monitoring.", "Patch Panel: Terminates structured cabling; connects to switches via short patch cables."] }
+        ],
         quiz: [
-          { q: "How many inches is 1U?", a: "1.75 inches" },
-          { q: "What is a blanking panel used for?", a: "To fill empty rack space and prevent hot exhaust air from recirculating to the front intake" },
-          { q: "What does PDU stand for?", a: "Power Distribution Unit" }
+          { q: "How many inches tall is 1U of rack space?", options: ["1.00 inch", "1.50 inches", "1.75 inches", "2.00 inches"], correct: 2 },
+          { q: "What is the purpose of a blanking panel in a rack?", options: ["To mount additional networking equipment", "To fill empty U space and prevent hot air recirculation to the intake", "To provide extra power outlets", "To label the rack for asset management"], correct: 1 },
+          { q: "What is the standard mounting width for rackmount equipment per EIA-310?", options: ["17 inches", "18 inches", "19 inches", "21 inches"], correct: 2 }
         ]
       },
       {
         day: 4, title: "Power Infrastructure Basics", duration: "15 min", xp: 100,
-        content: `Power is the lifeblood of a data center. Understanding the power chain from utility to server is essential — power failures are the #1 cause of DC outages.
-
-**The Power Chain:**
-Utility Grid → Transformer → Main Switchgear → UPS → PDU → Server
-
-**Key Components:**
-
-**UPS (Uninterruptible Power Supply):**
-You know desktop UPS units. DC UPS systems are the same concept — batteries that bridge the gap between utility failure and generator startup. They're massive (could be entire rooms) and typically provide 5–15 minutes of runtime.
-
-**Generator:**
-Diesel generators are standard. They start automatically on utility failure and must reach full power within 10–30 seconds. Regular load testing (monthly or quarterly) is required maintenance.
-
-**ATS (Automatic Transfer Switch):**
-Detects utility failure and automatically switches the load to generator power. Critical — if this fails during an outage, everything goes dark.
-
-**Power Redundancy Models:**
-- **N:** Just enough power for the load. No redundancy.
-- **N+1:** One extra UPS/generator beyond what's needed.
-- **2N:** Fully redundant — two complete, independent power paths (A-feed and B-feed). Most enterprise DC servers have dual PSUs that connect to both feeds.
-
-**What You'll Do as a Tech:**
-- Verify A+B feed connections when racking servers
-- Read PDU metering to check load balance
-- Never exceed 80% of a circuit's rated capacity (the "80% rule")
-- Document power draw for capacity planning`,
+        content: [
+          { type: "heading", text: "The Power Chain" },
+          { type: "body", text: "Utility Grid → Transformer → Main Switchgear → UPS → PDU → Server. Every link in this chain is a potential point of failure. Your job is to understand, monitor, and protect each one." },
+          { type: "heading", text: "Key Components" },
+          { type: "bullets", items: ["UPS (Uninterruptible Power Supply): Battery bridge between utility failure and generator startup. Provides 5–15 minutes of runtime.", "Generator: Diesel-powered, auto-starts on utility failure. Must reach full power within 10–30 seconds.", "ATS (Automatic Transfer Switch): Detects utility failure and automatically switches the load to generator power.", "PDU Types: Basic | Metered | Switched | Intelligent. Metered shows per-outlet current."] },
+          { type: "heading", text: "Power Redundancy Models" },
+          { type: "bullets", items: ["N: Exactly enough to run the load. Zero redundancy.", "N+1: One extra unit beyond what's needed. One failure tolerated.", "2N: Two fully independent power paths (A-feed and B-feed). Full redundancy. Gold standard for Tier III/IV."] }
+        ],
         quiz: [
-          { q: "What does UPS stand for, and what is its primary purpose in a DC?", a: "Uninterruptible Power Supply — provides battery backup to bridge the gap between utility failure and generator startup" },
-          { q: "What is a 2N power design?", a: "Fully redundant dual power paths — two complete, independent systems (A-feed and B-feed)" },
-          { q: "What is the '80% rule' for circuits?", a: "Never load a circuit beyond 80% of its rated capacity, to leave headroom and prevent tripping" }
+          { q: "What is the primary purpose of a UPS in a data center power chain?", options: ["To step down voltage from the utility grid", "To provide battery backup bridging utility failure and generator startup", "To distribute power across individual rack PDUs", "To monitor and log power consumption per server"], correct: 1 },
+          { q: "What does the '80% rule' mean for data center circuits?", options: ["UPS batteries must stay above 80% charge", "Never load a circuit beyond 80% of its rated capacity", "Generators must be fueled to at least 80% at all times", "80% of servers must have dual power supplies"], correct: 1 },
+          { q: "What is a 2N power design?", options: ["Two generators sharing one UPS", "A design where N+2 extra UPS units are installed", "Two fully independent, complete power paths serving the same load", "A power design requiring two utility feeds from the same provider"], correct: 2 }
         ]
       },
       {
         day: 5, title: "Cooling Systems", duration: "15 min", xp: 100,
-        content: `Heat is the enemy of uptime. Modern servers generate enormous heat — a 42U rack of high-density servers can produce 20–50 kW. Cooling is what makes density possible.
-
-**CRAC vs CRAH:**
-- **CRAC (Computer Room Air Conditioner):** Self-contained unit with its own compressor. Like a big window AC.
-- **CRAH (Computer Room Air Handler):** Uses chilled water from a central chiller plant. More efficient at scale. Requires a chiller, cooling tower, and piping infrastructure.
-
-**Cooling Approaches:**
-
-**Perimeter Cooling:** CRAC/CRAH units around the edges of the room, pushing cold air under the raised floor. Works for low-to-medium density.
-
-**In-Row Cooling:** Cooling units placed directly within rack rows, close to heat sources. Better for high-density deployments.
-
-**Rear-Door Heat Exchanger (RDHx):** A water-cooled panel that mounts on the back of a rack and captures exhaust heat before it enters the hot aisle. Very efficient for dense racks.
-
-**Liquid Cooling:** Direct liquid cooling (DLC) or immersion cooling for extreme density (AI/GPU workloads). Water or dielectric fluid runs directly to CPUs/GPUs.
-
-**Temperature & Humidity Standards (ASHRAE A1 Class):**
-- Supply air temp: 59°F–77°F (15°C–25°C)
-- Humidity: 20%–80% RH, non-condensing
-
-**Your Role:**
-- Monitor temperature at intake (front of rack) and exhaust (rear)
-- Report hot spots immediately — could indicate a cooling failure or a blanking panel missing
-- Never leave racks open — disrupts airflow
-- Check CRAC/CRAH filters on maintenance schedule`,
+        content: [
+          { type: "heading", text: "Why Cooling Matters" },
+          { type: "body", text: "Heat is the enemy of uptime. A 42U rack of high-density servers can produce 20–50 kW of heat. Without adequate cooling, equipment throttles, fails, or catches fire. Cooling is what makes density possible." },
+          { type: "heading", text: "CRAC vs CRAH" },
+          { type: "bullets", items: ["CRAC (Computer Room Air Conditioner): Self-contained unit with its own compressor. Like a large window AC.", "CRAH (Computer Room Air Handler): Uses chilled water from a central plant. More efficient at scale.", "In-Row Cooling: Units placed directly within rack rows. Better for high-density deployments.", "RDHx (Rear-Door Heat Exchanger): Water-cooled panel on the back of a rack, captures exhaust heat directly."] },
+          { type: "heading", text: "ASHRAE Temperature Standards" },
+          { type: "bullets", items: ["ASHRAE A1 supply air: 59°F–77°F (15°C–25°C)", "Humidity: 20%–80% RH, non-condensing", "Intake temps above 80°F: escalate immediately — indicates cooling failure or blocked airflow"] }
+        ],
         quiz: [
-          { q: "What is the difference between a CRAC and a CRAH unit?", a: "CRAC has its own self-contained compressor; CRAH uses chilled water from a central chiller plant" },
-          { q: "What ASHRAE A1 intake temperature range should servers receive?", a: "59°F–77°F (15°C–25°C)" },
-          { q: "What is an RDHx?", a: "Rear-Door Heat Exchanger — a water-cooled panel on the back of a rack that captures exhaust heat" }
+          { q: "What is the key difference between a CRAC and a CRAH cooling unit?", options: ["CRAC uses chilled water; CRAH has its own compressor", "CRAC has its own self-contained compressor; CRAH uses chilled water from a central plant", "CRAC is for small DCs; CRAH is only for hyperscale facilities", "CRAC cools the hot aisle; CRAH cools the cold aisle"], correct: 1 },
+          { q: "What is the ASHRAE A1 recommended supply air temperature range for data center equipment?", options: ["32°F–59°F (0°C–15°C)", "59°F–77°F (15°C–25°C)", "77°F–95°F (25°C–35°C)", "50°F–68°F (10°C–20°C)"], correct: 1 },
+          { q: "What is an RDHx?", options: ["A remote data handling exchange protocol", "A Rear-Door Heat Exchanger that captures rack exhaust heat via a water-cooled panel", "A redundant data hub extension for high-density networking", "A type of CRAC unit mounted above the rack"], correct: 1 }
         ]
       }
     ]
@@ -214,179 +152,86 @@ Detects utility failure and automatically switches the load to generator power. 
     lessons: [
       {
         day: 6, title: "Server Hardware Deep Dive", duration: "15 min", xp: 100,
-        content: `You know desktop hardware well. Server hardware uses the same fundamentals but with reliability, manageability, and density as top priorities.
-
-**Form Factors:**
-- **1U/2U Rack Server:** Most common. Standard compute nodes. (Dell PowerEdge R-series, HP ProLiant DL-series)
-- **Blade Server:** High-density chassis holding multiple blade modules sharing power/cooling/networking.
-- **Tower Server:** Same as a rack server, just in a tower case. Used in small deployments.
-- **Modular/High-Density:** 4-node chassis designs where multiple servers share a chassis.
-
-**Key Differences from Desktop Hardware:**
-CPUs: Desktop uses 1 socket consumer chips; servers use 1–8 sockets with Xeon/EPYC processors.
-RAM: Desktop uses standard DDR5; servers require ECC DDR5 with 8–32 slots.
-Storage: Desktop uses SATA/NVMe; servers use SAS/SATA/NVMe with hot-swap capability.
-NICs: Desktop has 1GbE onboard; servers use 10/25/100GbE dual-port cards.
-Power: Desktop has a single PSU; servers have redundant hot-swap PSUs.
-Management: Desktop has BIOS only; servers have BMC/iDRAC/iLO out-of-band management.
-
-**ECC RAM:**
-Error-Correcting Code memory detects and corrects single-bit errors on the fly. Critical for server reliability — a bit flip in a database can corrupt data. Always required in servers.
-
-**Hot-Swap Components:**
-Servers are designed for components to be swapped while running: Hard drives (in a RAID array), power supplies, fans, and sometimes RAM and CPUs.
-
-**SAS vs SATA vs NVMe:**
-- **SAS:** Enterprise protocol, faster (12Gbps), more reliable, more expensive
-- **SATA:** Consumer/prosumer, 6Gbps, lower cost
-- **NVMe:** PCIe-based, extremely fast (7GB/s+), used for performance workloads`,
+        content: [
+          { type: "heading", text: "Key Differences from Desktop Hardware" },
+          { type: "bullets", items: ["ECC RAM: Error-Correcting Code memory detects and corrects single-bit errors. Required in all servers. Desktop RAM does not have this protection.", "Hot-Swap: Drives, PSUs, and fans can be replaced while the server is running — minimizes downtime.", "Dual PSUs: Two redundant power supplies on A+B feeds. If one fails, the server keeps running.", "BMC/iDRAC/iLO: Out-of-band management chip — runs even when the server is off."] },
+          { type: "heading", text: "Storage Protocols" },
+          { type: "bullets", items: ["SAS: Enterprise protocol, 12Gbps, more reliable, higher cost. For workloads requiring reliability.", "SATA: Consumer/prosumer, 6Gbps, lower cost. For less critical or high-capacity storage.", "NVMe: PCIe-based, up to 7GB/s+. For high-performance databases and VM storage."] },
+          { type: "heading", text: "Form Factors" },
+          { type: "bullets", items: ["1U/2U Rack Server: Most common. Dell PowerEdge R-series, HP ProLiant DL-series.", "Blade Server: High-density chassis — multiple blades share power, cooling, and networking.", "Tower Server: Same internals as rack, tower case. Used in small or remote deployments."] }
+        ],
         quiz: [
-          { q: "What is ECC RAM and why is it required in servers?", a: "Error-Correcting Code RAM detects and corrects single-bit memory errors on the fly, preventing data corruption" },
-          { q: "What is the advantage of hot-swap components in servers?", a: "They can be replaced while the server is running, minimizing or eliminating downtime" },
-          { q: "What is a BMC/iDRAC/iLO?", a: "Out-of-band management controllers that allow remote access to a server regardless of OS state" }
+          { q: "What does ECC RAM do that standard desktop RAM cannot?", options: ["Runs at higher clock speeds for better server performance", "Detects and corrects single-bit memory errors on the fly", "Supports more DIMM slots per motherboard", "Operates at lower voltage to reduce heat output"], correct: 1 },
+          { q: "What is the main advantage of hot-swap components in a server?", options: ["They are cheaper than standard components", "They run at higher speeds than non-hot-swap equivalents", "They can be replaced while the server is running, avoiding downtime", "They are automatically backed up to the cloud"], correct: 2 },
+          { q: "Which storage protocol offers the highest performance for database and VM workloads?", options: ["SATA — because of its broad compatibility", "SAS — because of its enterprise reliability rating", "NVMe — because it uses PCIe and delivers up to 7GB/s+", "USB 3.2 — because of its external accessibility"], correct: 2 }
         ]
       },
       {
         day: 7, title: "Out-of-Band Management", duration: "15 min", xp: 100,
-        content: `This is one of the most valuable skills for a DC tech. Out-of-band (OOB) management lets you access a server's console, power, and hardware even when the OS is down or the server won't boot.
-
-**What Is Out-of-Band Management?**
-Every enterprise server has a dedicated management controller chip (BMC) with its own network port, processor, and memory. It runs independently of the main server — even when the server is powered off (as long as it's plugged in).
-
-**Vendor Names:**
-- **Dell:** iDRAC (Integrated Dell Remote Access Controller)
-- **HP/HPE:** iLO (Integrated Lights-Out)
-- **Lenovo:** XCC (Lenovo XClarity Controller)
-- **Supermicro:** IPMI / BMC web interface
-
-**What You Can Do via OOB:**
-- Power on/off/reset remotely
-- Access virtual console (KVM over IP — see the screen, use keyboard/mouse)
-- Mount virtual media (boot from an ISO remotely)
-- View hardware health: temps, fan speeds, PSU status, drive health
-- View system event log (SEL) — a hardware-level event log
-- Configure BIOS/UEFI settings
-- Update firmware
-
-**IPMI:**
-The underlying protocol. Most BMCs support IPMI 2.0 commands, allowing scripted/automated management. The ipmitool command on Linux lets you query and control servers programmatically.
-
-**Practical Workflow:**
-1. Server won't respond to ping → open iDRAC/iLO
-2. Check virtual console → see what's on screen
-3. Review SEL → find hardware errors
-4. Power cycle if needed → all without touching the physical server
-
-This is "lights-out" data center operation — managing servers remotely without being on the floor.`,
+        content: [
+          { type: "heading", text: "What Is Out-of-Band Management?" },
+          { type: "body", text: "Every enterprise server has a dedicated management controller (BMC) with its own network port, processor, and memory. It runs independently — even when the server is powered off, as long as it's plugged in. This enables lights-out data center operation." },
+          { type: "heading", text: "Vendor Names" },
+          { type: "bullets", items: ["Dell: iDRAC (Integrated Dell Remote Access Controller)", "HP/HPE: iLO (Integrated Lights-Out)", "Lenovo: XCC (Lenovo XClarity Controller)", "Supermicro: IPMI / BMC Web Interface"] },
+          { type: "heading", text: "What You Can Do via OOB" },
+          { type: "bullets", items: ["Power on/off/reset remotely", "Virtual console (KVM over IP) — see the screen and use keyboard/mouse remotely", "Mount virtual media — boot from an ISO as if a USB were plugged in locally", "View SEL (System Event Log) — hardware-level events recorded by the BMC", "Update firmware and configure BIOS/UEFI — all without touching the physical server"] },
+          { type: "heading", text: "Standard Troubleshooting Workflow" },
+          { type: "bullets", items: ["Server not responding to ping? 1) Open iDRAC/iLO → 2) Check virtual console → 3) Review SEL → 4) Power cycle if needed. All remote."] }
+        ],
         quiz: [
-          { q: "What does iDRAC stand for?", a: "Integrated Dell Remote Access Controller" },
-          { q: "What can you do with virtual media in OOB management?", a: "Remotely mount an ISO image to boot the server from it, as if a USB/DVD were plugged in locally" },
-          { q: "What is the SEL?", a: "System Event Log — a hardware-level log of events recorded by the BMC, independent of the OS" }
+          { q: "What does iDRAC stand for?", options: ["Integrated Data Redundancy and Control", "Integrated Dell Remote Access Controller", "Internal Drive RAID Access Controller", "Intelligent Dell Resource Allocation Center"], correct: 1 },
+          { q: "What does virtual media allow you to do via OOB management?", options: ["Stream video from a remote security camera to the server console", "Remotely mount an ISO to boot the server as if a USB were plugged in locally", "Synchronize server time with an external NTP source", "Monitor bandwidth usage across all NICs simultaneously"], correct: 1 },
+          { q: "What is the SEL in the context of server management?", options: ["Server Encryption Layer — protects data at rest", "Secure Exchange Link — encrypts iDRAC communications", "System Event Log — hardware-level events recorded by the BMC independent of the OS", "Switch Error Log — records network interface faults"], correct: 2 }
         ]
       },
       {
         day: 8, title: "RAID & Storage Basics", duration: "15 min", xp: 100,
-        content: `Storage in the data center goes far beyond what you've seen on desktops. Understanding RAID and storage tiers is essential.
-
-**RAID Reference:**
-RAID 0 — 2+ drives, no fault tolerance, use case: scratch/temp storage.
-RAID 1 — 2 drives, tolerates 1 drive failure, use case: OS drives, small servers.
-RAID 5 — 3+ drives, tolerates 1 drive failure, use case: general purpose (being phased out).
-RAID 6 — 4+ drives, tolerates 2 drive failures, use case: better choice than RAID 5 today.
-RAID 10 — 4+ drives, tolerates 1 per mirror pair, use case: performance + redundancy.
-
-**Why RAID 5 Is Problematic Today:**
-Modern drives are so large (8–20TB) that a rebuild after a drive failure can take days. During rebuild, the remaining drives are under heavy stress — a second failure during rebuild (URE) is increasingly likely. RAID 6 or RAID 10 are preferred.
-
-**Storage Tiers:**
-- **Tier 0:** NVMe flash, sub-millisecond latency. Databases, VM storage.
-- **Tier 1:** SAS SSD, fast and reliable. Enterprise workloads.
-- **Tier 2:** SATA SSD or SAS HDD. Mixed workloads.
-- **Tier 3:** High-capacity SATA HDD. Backup, archive.
-- **Tier 4:** Tape. Long-term archive, disaster recovery.
-
-**SAN vs NAS:**
-- **SAN (Storage Area Network):** Block storage over Fibre Channel or iSCSI. Server sees it as a local disk. High performance.
-- **NAS (Network Attached Storage):** File storage over NFS or SMB/CIFS. Server accesses it like a network share.
-
-**As a DC Tech:**
-- Replace failed drives promptly (hot-swap in most arrays)
-- Always verify the failed drive LED before pulling — pulling the wrong drive can destroy data
-- Monitor rebuild progress and alert if a second drive fails
-- Document drive replacements with serial numbers`,
+        content: [
+          { type: "heading", text: "RAID Levels" },
+          { type: "bullets", items: ["RAID 0: 2+ drives, no fault tolerance. Scratch/temp only.", "RAID 1: 2 drives, tolerates 1 failure. OS volumes.", "RAID 5: 3+ drives, tolerates 1 failure. Being phased out — see below.", "RAID 6: 4+ drives, tolerates 2 failures. Preferred over RAID 5 today.", "RAID 10: 4+ drives, tolerates 1 per mirror pair. Performance + redundancy."] },
+          { type: "heading", text: "Why RAID 5 Is Risky Today" },
+          { type: "body", text: "Modern drives (8–20TB) take days to rebuild after a failure. During rebuild, surviving drives are under heavy stress. A second drive failure (URE — Unrecoverable Read Error) causes total data loss. RAID 6 tolerates 2 failures and is the modern standard." },
+          { type: "heading", text: "SAN vs NAS" },
+          { type: "bullets", items: ["SAN (Storage Area Network): Block storage over Fibre Channel or iSCSI. Server sees it as a local disk. High performance.", "NAS (Network Attached Storage): File storage over NFS or SMB/CIFS. Accessed like a network share."] }
+        ],
         quiz: [
-          { q: "Why is RAID 5 considered risky with modern large drives?", a: "Rebuilds take days on large drives; the risk of a second drive failing during rebuild (URE) is high, causing total data loss" },
-          { q: "What is the difference between SAN and NAS?", a: "SAN provides block storage (server sees it as a local disk); NAS provides file storage accessed over the network via NFS or SMB" },
-          { q: "What must you verify before pulling a drive from a RAID array?", a: "Confirm the failed drive LED indicator — pulling the wrong drive can destroy the entire array" }
+          { q: "Why is RAID 5 considered risky with modern high-capacity drives?", options: ["RAID 5 doesn't support drives larger than 4TB", "Rebuilds on large drives take days, and a second drive failure (URE) during rebuild causes total data loss", "RAID 5 requires a dedicated hot spare at all times or it won't function", "Modern drives are too fast for RAID 5 controllers to keep up with"], correct: 1 },
+          { q: "What is the difference between SAN and NAS storage?", options: ["SAN is slower than NAS because it uses wireless protocols", "SAN provides file-level storage over SMB; NAS provides block storage over Fibre Channel", "SAN provides block storage (server sees it as a local disk); NAS provides file storage over the network", "SAN requires Linux servers; NAS requires Windows servers"], correct: 2 },
+          { q: "Which RAID level provides the best combination of performance and fault tolerance?", options: ["RAID 0 — fastest with full striping", "RAID 1 — simplest mirroring", "RAID 5 — good balance of speed and space", "RAID 10 — striped mirrors providing both performance and redundancy"], correct: 3 }
         ]
       },
       {
         day: 9, title: "Structured Cabling & Fiber", duration: "15 min", xp: 100,
-        content: `Cabling is a huge part of a DC tech's daily work. Clean, documented cabling is the sign of a professional. Poor cabling causes outages, slows troubleshooting, and looks terrible.
-
-**Copper Cabling:**
-- **Cat6:** Up to 1GbE at 100m, 10GbE at 55m
-- **Cat6A:** Up to 10GbE at 100m — current standard for new installs
-- **Cat8:** Up to 40GbE at 30m — data center use only
-- **TIA-568 color standard:** Learn T568B wiring — it's what you'll crimp
-
-**Fiber Optic Cabling:**
-- **Single-Mode (SMF):** Yellow jacket, 9/125μm core. Long distance (km). Used for inter-building or cross-DC runs.
-- **Multi-Mode (MMF):** Aqua/orange jacket, 50/125μm. Short distance (up to 400m). Used within the DC for server-to-switch connections.
-- **OM3/OM4/OM5:** Multi-mode grades. OM4 supports 100GbE at 150m. OM5 supports WDM.
-
-**Common Fiber Connectors:**
-- **LC:** Small, standard in DC patch panels and SFP modules
-- **MPO/MTP:** Multi-fiber connector (12 or 24 fibers) used in high-density pre-terminated trunks
-
-**Transceiver Types:**
-- SFP: 1GbE | SFP+: 10GbE | QSFP28: 100GbE | QSFP-DD: 400GbE
-
-**DAC & AOC Cables:**
-- **DAC (Direct Attach Copper):** Short copper cable with transceivers on both ends. 1–7m. Cheapest option for short runs.
-- **AOC (Active Optical Cable):** Fiber with transceivers permanently attached. Up to 100m.
-
-**Cabling Best Practices:**
-1. Always label both ends of every cable before installation
-2. Dress cables neatly — use Velcro (never zip ties) for fiber; zip ties OK for copper
-3. Never exceed minimum bend radius for fiber (~1 inch for LC patch cables)
-4. Document in DCIM immediately
-5. Use appropriate cable lengths — excess cable creates a mess`,
+        content: [
+          { type: "heading", text: "Copper Cabling" },
+          { type: "bullets", items: ["Cat6: Up to 1GbE at 100m, 10GbE at 55m", "Cat6A: Up to 10GbE at 100m — current standard for new installs", "Cat8: Up to 40GbE at 30m — data center use only"] },
+          { type: "heading", text: "Fiber Optic Cabling" },
+          { type: "bullets", items: ["Single-Mode (SMF): Yellow jacket, 9/125μm. Long distance (km). Inter-building or cross-DC runs.", "Multi-Mode (MMF): Aqua/orange jacket, 50/125μm. Up to 400m. Intra-DC server-to-switch.", "OM4: Supports 100GbE at 150m. Current multi-mode standard."] },
+          { type: "heading", text: "Transceivers & Direct Attach" },
+          { type: "bullets", items: ["SFP: 1GbE | SFP+: 10GbE | QSFP28: 100GbE | QSFP-DD: 400GbE", "DAC (Direct Attach Copper): Short twinax cable (1–7m) with fixed transceivers. Cheapest for short runs.", "AOC (Active Optical Cable): Fiber with fixed transceivers. Up to 100m. More flexible than DAC."] },
+          { type: "heading", text: "Cabling Rules" },
+          { type: "bullets", items: ["Label both ends before installation — every time, no exceptions.", "Use Velcro (never zip ties) for fiber — zip ties can crush the glass strand.", "Document in DCIM immediately after installation."] }
+        ],
         quiz: [
-          { q: "What color jacket identifies single-mode fiber?", a: "Yellow" },
-          { q: "What type of tie should you use for fiber optic cables and why?", a: "Velcro — zip ties can crush fiber and cause signal loss or breakage" },
-          { q: "What is a DAC cable?", a: "Direct Attach Copper — a short twinax cable with transceivers permanently attached on both ends, used for short rack/row connections" }
+          { q: "What color jacket identifies single-mode fiber optic cable?", options: ["Orange", "Aqua", "Yellow", "Blue"], correct: 2 },
+          { q: "Why should you use Velcro instead of zip ties when bundling fiber optic cables?", options: ["Velcro is cheaper and easier to remove than zip ties", "Zip ties can crush fiber and cause signal loss or permanent breakage", "Zip ties generate static electricity that interferes with the optical signal", "Velcro is required by TIA-568 for all fiber installations"], correct: 1 },
+          { q: "What is a DAC cable?", options: ["Digital Audio Converter — used for server speaker output", "Direct Attach Copper — short twinax cable with transceivers permanently attached, for short rack connections", "Dual Armored Cable — reinforced fiber for raised floor runs", "Distributed Access Controller — manages port assignments on ToR switches"], correct: 1 }
         ]
       },
       {
         day: 10, title: "Networking for DC Techs", duration: "15 min", xp: 100,
-        content: `As a desktop tech you know basic networking. In the DC, the scale and architecture are different. You need to understand how traffic flows through the DC fabric.
-
-**DC Network Architecture: Spine-Leaf**
-Modern DCs use a spine-leaf (Clos) topology instead of the traditional core/distribution/access hierarchy.
-
-Spine switches sit at the top and connect only to leaf switches. Leaf switches connect to servers and storage, and every leaf connects to every spine. This means any server can reach any other server in exactly 2 hops. Adding capacity is easy: add a leaf for more servers, add a spine for more bandwidth.
-
-**Key Protocols:**
-- **VLAN:** Used for layer 2 segmentation
-- **VXLAN:** Extends layer 2 over layer 3 — critical for large DC and cloud environments
-- **BGP:** Used internally in large DCs (eBGP in the underlay) and for internet connectivity
-- **LACP:** Link Aggregation Control Protocol — bonds multiple physical links into one logical link for redundancy and bandwidth
-
-**Top-of-Rack (ToR) vs End-of-Row (EoR):**
-- **ToR:** A switch at the top of each rack. Servers connect short patch cables to it. Minimizes copper runs.
-- **EoR:** Switches at the end of each row. All servers in the row run copper to it. Fewer switches to manage but longer cable runs.
-
-**What You'll Do:**
-- Patch servers into ToR switches per rack diagram
-- Verify link lights and speeds
-- Trace cable paths
-- Confirm VLAN assignments with network team
-- Label switch ports`,
+        content: [
+          { type: "heading", text: "Spine-Leaf Architecture" },
+          { type: "body", text: "Modern DCs use a spine-leaf (Clos) topology. Spine switches connect only to leaf switches. Leaf switches connect to servers. Every leaf connects to every spine — any server can reach any other in exactly 2 hops. Easy to scale: add a leaf for more servers, add a spine for more bandwidth." },
+          { type: "heading", text: "Key Protocols" },
+          { type: "bullets", items: ["VLAN: Layer 2 segmentation. Isolates traffic between groups.", "VXLAN: Extends Layer 2 over Layer 3. Essential for large DCs and cloud environments.", "LACP: Link Aggregation — bonds multiple physical links into one logical link for redundancy and bandwidth.", "BGP: Used internally in large DCs (eBGP underlay) and for internet connectivity."] },
+          { type: "heading", text: "ToR vs EoR" },
+          { type: "bullets", items: ["ToR (Top-of-Rack): Switch at top of each rack. Servers connect via short patch cables. Minimizes cable runs.", "EoR (End-of-Row): Switches at end of each row. All servers in the row run copper to it. Fewer switches, longer runs."] }
+        ],
         quiz: [
-          { q: "In a spine-leaf topology, how many switch hops does it take for any server to reach any other server?", a: "Two hops — server to leaf, leaf to spine, spine to destination leaf, destination leaf to server" },
-          { q: "What is VXLAN used for?", a: "Extending layer 2 networks over layer 3 infrastructure — enabling large-scale DC and cloud networking" },
-          { q: "What is a ToR switch?", a: "Top-of-Rack switch — a switch placed at the top of a server rack that servers connect to via short patch cables" }
+          { q: "In a spine-leaf topology, how many switch hops does it take for any server to reach any other server?", options: ["1 hop", "2 hops", "3 hops", "4 hops"], correct: 1 },
+          { q: "What is VXLAN used for in a data center network?", options: ["Encrypting traffic between servers in the same rack", "Extending Layer 2 networks over Layer 3 infrastructure for large-scale DC and cloud networking", "Providing out-of-band management access to network switches", "Aggregating multiple physical links into one logical interface"], correct: 1 },
+          { q: "What is a Top-of-Rack (ToR) switch?", options: ["A switch mounted at the top of a server rack that servers connect to via short patch cables", "The highest-priority switch in the DC network hierarchy", "A switch used only for management traffic, not data traffic", "A spine-layer switch that connects to all leaf switches"], correct: 0 }
         ]
       }
     ]
@@ -396,198 +241,82 @@ Spine switches sit at the top and connect only to leaf switches. Leaf switches c
     lessons: [
       {
         day: 11, title: "DC Safety & Compliance", duration: "15 min", xp: 100,
-        content: `Data center safety isn't just about your wellbeing — it's about protecting millions of dollars of equipment and maintaining uptime.
-
-**Electrical Safety:**
-- **Arc flash:** An electrical arc can produce plasma reaching 35,000°F. Always de-energize before working on electrical panels. Follow NFPA 70E.
-- **Lockout/Tagout (LOTO):** Before working on powered equipment, lock the energy source in the OFF position and tag it. NEVER rely on someone else's LOTO.
-- **Never work alone on high-voltage equipment.**
-- The "80% rule": Never load circuits above 80% capacity.
-
-**Physical Safety:**
-- **Lifting:** Servers can weigh 50–75 lbs. Use lift tables for heavy equipment. Two-person lifts for anything over 35 lbs.
-- **ESD (Electrostatic Discharge):** Wear ESD wrist straps when handling components. Ground yourself to the rack.
-- **Raised floor tiles:** Use a tile puller — a dropped tile can cause serious injury. Never walk on tiles that aren't fully seated.
-
-**Access Control:**
-- Man-traps / security vestibules: Two-door airlock — only one door opens at a time
-- Badge access is logged — you are accountable for who enters with you
-- Escort policies: Visitors/contractors must be escorted at all times
-- CCTV: You are always on camera
-
-**Fire Suppression:**
-- **VESDA (Very Early Smoke Detection Apparatus):** Samples air continuously — detects smoke before a visible fire
-- **Clean agent suppression:** Inert gas (FM-200, Novec 1230) that suppresses fire without water damage. Evacuate immediately when alarms sound.
-- **Pre-action sprinkler:** Two conditions must be met before water releases — reduces accidental discharge risk
-
-**Key Rule:** If you're unsure whether something is safe — STOP and ask. A 5-minute pause is always better than a 5-hour outage.`,
+        content: [
+          { type: "heading", text: "Electrical Safety" },
+          { type: "bullets", items: ["Arc flash: Electrical arcs reach 35,000°F. Always de-energize before working on electrical panels. Follow NFPA 70E.", "LOTO (Lockout/Tagout): Lock and tag energy sources in the OFF position before work. Never rely on someone else's LOTO.", "Never work alone on high-voltage equipment — ever."] },
+          { type: "heading", text: "Physical Safety" },
+          { type: "bullets", items: ["Lifting: Servers weigh 50–75 lbs. Use lift tables for heavy gear. Two-person rule for anything over 35 lbs.", "ESD (Electrostatic Discharge): Wear wrist straps, ground to rack before handling components.", "Raised floor tiles: Use a tile puller. A dropped tile can cause serious injury."] },
+          { type: "heading", text: "Fire Suppression" },
+          { type: "bullets", items: ["VESDA (Very Early Smoke Detection Apparatus): Continuously samples air. Detects fire before visible smoke.", "Clean Agent (FM-200 / Novec 1230): Suppresses fire without water damage. EVACUATE immediately — displaces oxygen.", "Pre-action Sprinkler: Two conditions must be met before water releases — reduces accidental discharge risk."] }
+        ],
         quiz: [
-          { q: "What is Lockout/Tagout (LOTO)?", a: "A safety procedure where you lock and tag an energy source in the OFF position before working on equipment, ensuring it cannot be accidentally energized" },
-          { q: "What should you do immediately when a clean agent fire suppression system activates?", a: "Evacuate immediately — the suppression agent displaces oxygen and can be harmful to breathe" },
-          { q: "What is VESDA?", a: "Very Early Smoke Detection Apparatus — continuously samples air to detect smoke before a visible fire develops" }
+          { q: "What is Lockout/Tagout (LOTO) and when is it required?", options: ["A labeling system for asset tracking — required when installing new servers", "A safety procedure locking energy sources OFF before working on equipment — required before any electrical maintenance", "A software lock applied to server BIOS — required when updating firmware", "A physical lock on the data center cage — required when contractors are on site"], correct: 1 },
+          { q: "What should you do immediately when a clean agent fire suppression system activates?", options: ["Stay and attempt to identify the source of smoke before evacuating", "Evacuate immediately — the suppression agent displaces oxygen and is hazardous to breathe", "Call the facilities team and wait for instructions before moving", "Shut down all servers manually to prevent electrical fire spread"], correct: 1 },
+          { q: "What is VESDA?", options: ["A voltage surge detection device that protects UPS systems", "Very Early Smoke Detection Apparatus — continuously samples air to detect fire before visible smoke", "A vibration sensor array that detects physical intrusion in server rooms", "Verified Environmental Safety and Data Assurance — an ASHRAE compliance standard"], correct: 1 }
         ]
       },
       {
         day: 12, title: "Change Management & Ticketing", duration: "15 min", xp: 100,
-        content: `Data centers run on process. Ad-hoc changes are the #1 cause of preventable outages. Understanding change management is non-negotiable.
-
-**Why Change Management Exists:**
-In a DC, a "quick fix" with no documentation can take down production systems serving thousands of users. Change management creates accountability, allows rollback planning, and provides a paper trail.
-
-**Change Types:**
-
-**Standard Change:** Pre-approved, low-risk, routine tasks with documented procedures. Adding a label, replacing a failed drive in an array, patching a cable.
-
-**Normal Change:** Requires review and approval before execution. New server deployments, network configuration changes, firmware updates. Goes through a CAB (Change Advisory Board).
-
-**Emergency Change:** Urgent, unexpected — requires expedited approval, often by a smaller group. Must still be documented — approved retroactively if needed.
-
-**Change Request Components:**
-1. Description: What are you doing?
-2. Justification: Why?
-3. Risk assessment: What could go wrong?
-4. Rollback plan: How do you undo it?
-5. Implementation steps: Step-by-step procedure
-6. Testing/validation: How do you confirm success?
-7. Maintenance window: When (usually off-peak hours)
-8. Stakeholder notification: Who is affected and informed?
-
-**Ticketing Systems You'll Use:**
-ServiceNow (most common enterprise), Jira Service Management, Remedy / BMC Helix, Freshservice
-
-**Your Habits as a DC Tech:**
-- Never make a change without a ticket number
-- Document everything — even "no change found" troubleshooting
-- Close tickets with detailed resolution notes
-- If something unexpected happens mid-change, STOP and escalate`,
+        content: [
+          { type: "heading", text: "Why Change Management Exists" },
+          { type: "body", text: "Ad-hoc changes are the #1 cause of preventable outages. Change management creates accountability, enables rollback planning, and provides an audit trail. In a DC, a 'quick fix' with no documentation can take down production systems serving thousands of users." },
+          { type: "heading", text: "Change Types" },
+          { type: "bullets", items: ["Standard Change: Pre-approved, low-risk, routine. Adding a label, replacing a failed drive, patching a cable.", "Normal Change: Requires CAB (Change Advisory Board) review and approval before execution.", "Emergency Change: Urgent, expedited approval. Must still be documented — approved retroactively if needed."] },
+          { type: "heading", text: "Change Request Components" },
+          { type: "bullets", items: ["Description: What are you doing?", "Justification: Why?", "Risk Assessment: What could go wrong?", "Rollback Plan: How do you undo it?", "Implementation Steps: Step-by-step procedure", "Maintenance Window: When (usually off-peak hours)"] }
+        ],
         quiz: [
-          { q: "What is a CAB?", a: "Change Advisory Board — a group that reviews and approves normal change requests before implementation" },
-          { q: "What must every change request include besides the description and steps?", a: "A rollback plan — how to undo the change if something goes wrong" },
-          { q: "What should you do if something unexpected happens during a change?", a: "Stop the change and escalate — don't proceed without guidance" }
+          { q: "What is a CAB in the context of change management?", options: ["Computer Automation Bureau — automates routine change approvals", "Change Advisory Board — reviews and approves normal change requests before implementation", "Critical Alert Broadcast — notifies stakeholders of emergency changes", "Centralized Asset Base — tracks all hardware affected by a change"], correct: 1 },
+          { q: "Which change type requires a rollback plan as a mandatory component?", options: ["Standard changes only, since they are pre-approved", "Emergency changes only, since they are time-critical", "All change types — every change request must include a rollback plan", "Normal changes only, since they go through CAB review"], correct: 2 },
+          { q: "What should you do if something unexpected happens during a change implementation?", options: ["Complete the change as quickly as possible to minimize the maintenance window", "Stop the change and escalate — do not proceed without guidance", "Document it afterward in the ticket but continue the change", "Contact the end user and ask if they want you to continue"], correct: 1 }
         ]
       },
       {
         day: 13, title: "Monitoring & Alerting", duration: "15 min", xp: 100,
-        content: `You can't fix what you can't see. Monitoring is the nervous system of a data center.
-
-**What Gets Monitored:**
-
-**Environmental:**
-- Temperature (per rack, per row, intake vs exhaust)
-- Humidity
-- Water leak detection (sensors under raised floor, near cooling units)
-- Airflow/pressure differential
-
-**Power:**
-- PDU per-outlet current draw
-- UPS state, battery health, runtime estimate
-- Generator fuel level, runtime hours
-- PUE in real-time
-
-**Hardware:**
-- Server: CPU temp, fan speeds, PSU status, drive health (SMART data)
-- Drive predictive failure alerts via RAID controller
-- Network: interface errors, utilization, CRC errors
-
-**Tools You'll Encounter:**
-- **DCIM (Data Center Infrastructure Management):** Combined monitoring for power, cooling, space — Nlyte, Vertiv Trellis, Sunbird
-- **Nagios / Icinga:** Open-source infrastructure monitoring
-- **Zabbix:** Open-source, highly scalable
-- **SolarWinds:** Enterprise network and systems monitoring
-- **Grafana + Prometheus:** Modern, open-source metrics visualization
-- **PagerDuty / OpsGenie:** On-call alerting and escalation
-
-**Alert Triage Process:**
-1. Acknowledge the alert (stops escalation)
-2. Assess severity — is it critical/warning/informational?
-3. Gather data before touching anything
-4. Consult runbooks for known issues
-5. Escalate if outside your scope
-6. Document findings in the ticket`,
+        content: [
+          { type: "heading", text: "What Gets Monitored" },
+          { type: "bullets", items: ["Environmental: Temperature per rack, humidity, water leak sensors, airflow/pressure differential.", "Power: PDU per-outlet current draw, UPS state, battery health, generator fuel level, real-time PUE.", "Hardware: CPU temps, fan speeds, PSU status, drive health via SMART data and RAID controller.", "Network: Interface errors, utilization, BGP session state, CRC errors."] },
+          { type: "heading", text: "Key Tools" },
+          { type: "bullets", items: ["DCIM (Data Center Infrastructure Management): Nlyte, Vertiv Trellis, Sunbird — unified power, cooling, space monitoring.", "Nagios / Icinga / Zabbix: Open-source infrastructure monitoring.", "Grafana + Prometheus: Modern metrics visualization.", "PagerDuty / OpsGenie: On-call alerting and escalation management."] },
+          { type: "heading", text: "Alert Triage Process" },
+          { type: "bullets", items: ["1. Acknowledge the alert (stops escalation)", "2. Assess severity — critical / warning / informational", "3. Gather data before touching anything", "4. Consult runbooks for known issue procedures", "5. Escalate if outside your scope", "6. Document all findings in the ticket"] }
+        ],
         quiz: [
-          { q: "What does DCIM stand for?", a: "Data Center Infrastructure Management — software that monitors and manages power, cooling, and space in a DC" },
-          { q: "What is the first thing you should do when you receive a critical alert?", a: "Acknowledge the alert to stop escalation, then begin assessment" },
-          { q: "What environmental sensor is placed under the raised floor?", a: "Water/leak detection sensors — to catch cooling leaks before they damage equipment" }
+          { q: "What does DCIM stand for?", options: ["Data Center Interface Module", "Distributed Computing Infrastructure Manager", "Data Center Infrastructure Management", "Dynamic Circuit and Infrastructure Monitor"], correct: 2 },
+          { q: "What is the correct first action when you receive a critical alert?", options: ["Immediately begin making changes to resolve the issue before it escalates further", "Acknowledge the alert to stop escalation, then begin assessment", "Call the on-call manager before doing anything else", "Check if other team members have already seen the alert before responding"], correct: 1 },
+          { q: "What type of sensor is typically placed under the raised floor near cooling units?", options: ["Temperature and humidity sensors to optimize airflow distribution", "Water/leak detection sensors to catch cooling leaks before equipment damage", "Vibration sensors to detect physical impact to floor tiles", "Airflow pressure sensors to measure CRAC unit output velocity"], correct: 1 }
         ]
       },
       {
         day: 14, title: "Incident Response & Escalation", duration: "15 min", xp: 100,
-        content: `When things break — and they will — how you respond determines whether a minor issue becomes a major outage.
-
-**Incident Severity Levels:**
-SEV1/P1 — Production down, critical impact — Immediate response required.
-SEV2/P2 — Major degradation, workaround exists — 15–30 min response.
-SEV3/P3 — Minor impact, non-critical — 2–4 hour response.
-SEV4/P4 — Informational, cosmetic — Next business day.
-
-**The ITIL Incident Process:**
-1. Detection: Alert fires or user reports issue
-2. Logging: Create ticket with all available data
-3. Categorization: What type of issue? Power? Cooling? Hardware? Network?
-4. Prioritization: Assign severity
-5. Diagnosis: Gather data, form hypothesis
-6. Resolution: Implement fix
-7. Closure: Document root cause, resolution, prevention
-
-**Runbooks:**
-Pre-written step-by-step procedures for common incidents. "Server won't POST" → runbook. "PDU alarm" → runbook. Learning to write and follow runbooks is a key skill.
-
-**Escalation — Know When to Ask for Help:**
-Escalation is not failure. Escalate when: you've been troubleshooting 15+ minutes without progress on a P1, the issue is outside your knowledge domain, you need unauthorized action, or safety is uncertain.
-
-**Post-Incident Review (PIR) / RCA:**
-After a significant incident, a Root Cause Analysis is conducted. These are blameless — the goal is process improvement, not punishment.
-
-**Communication During Incidents:**
-- Give clear, factual status updates — no speculation
-- Use timestamps: "At 14:15, I observed..."
-- Notify stakeholders even when you have no new info: "Still investigating, no update yet"`,
+        content: [
+          { type: "heading", text: "Incident Severity Levels" },
+          { type: "bullets", items: ["SEV1/P1: Production down, critical impact — Immediate response.", "SEV2/P2: Major degradation, workaround exists — 15–30 min response.", "SEV3/P3: Minor impact, non-critical — 2–4 hour response.", "SEV4/P4: Informational, cosmetic — Next business day."] },
+          { type: "heading", text: "The ITIL Incident Process" },
+          { type: "bullets", items: ["Detection → Logging → Categorization → Prioritization → Diagnosis → Resolution → Closure", "Each step requires documentation — if it isn't in the ticket, it didn't happen."] },
+          { type: "heading", text: "Escalation & Post-Incident Review" },
+          { type: "bullets", items: ["Escalate when: 15+ minutes without P1 progress, issue is outside your domain, unauthorized action is needed.", "PIR (Post-Incident Review): Blameless review after significant incidents. Goal is process improvement, not punishment.", "Communication rule: Use timestamps, give factual status updates, notify stakeholders even with no new info."] }
+        ],
         quiz: [
-          { q: "What is a runbook?", a: "A pre-written step-by-step procedure for responding to a known incident or operational task" },
-          { q: "When should you escalate an incident?", a: "After ~15 minutes without progress on a P1, when outside your domain, when unauthorized action is needed, or when safety is uncertain" },
-          { q: "What is the purpose of a Post-Incident Review (PIR)?", a: "A blameless review to identify root causes and improve processes to prevent recurrence" }
+          { q: "What is a runbook?", options: ["A log of all completed maintenance tasks for the current quarter", "A pre-written step-by-step procedure for responding to a known incident or operational task", "A script that automatically resolves common server alerts without human intervention", "A vendor document listing hardware specifications and warranty terms"], correct: 1 },
+          { q: "When should you escalate a P1 incident?", options: ["Only after you have fully exhausted all possible solutions yourself", "After approximately 15 minutes without progress, when outside your domain, or when safety is uncertain", "Only when explicitly directed to by your manager", "After the incident has been open for more than 1 hour"], correct: 1 },
+          { q: "What is the purpose of a Post-Incident Review (PIR)?", options: ["To identify and formally discipline the staff member responsible for the outage", "A blameless review to identify root causes and improve processes to prevent recurrence", "To calculate the financial cost of the incident for insurance claims", "To review whether the SLA was breached and notify affected customers"], correct: 1 }
         ]
       },
       {
         day: 15, title: "Certifications & Career Path", duration: "15 min", xp: 150,
-        content: `You've now completed the foundational curriculum. Let's map your career path and identify the certifications that will get you hired and promoted.
-
-**Certifications to Pursue (In Order):**
-
-Tier 1 — Get These First:
-- **CompTIA Server+:** Directly relevant to DC tech work. Covers server hardware, storage, networking, troubleshooting. ~$370 exam. Strong foundation given your desktop background.
-- **CompTIA Network+:** If you don't have it already. Validates networking fundamentals essential for DC work.
-- **OSHA 10 (General Industry):** Safety certification. Many DCs require it or strongly prefer it. ~$60, done online.
-
-Tier 2 — After 6–12 Months in Role:
-- **Cisco CCNA:** Gold standard for networking. Takes 3–6 months to prepare. Opens doors significantly.
-- **VMware VCP (vSphere):** Virtualization is everywhere in DCs. VMware VCP is highly valued.
-- **BICSI RCDD or Installer 2:** For structured cabling professionals.
-
-Tier 3 — Intermediate (1–3 Years):
-- **AWS/Azure/GCP Associate Certifications:** Cloud is deeply intertwined with modern DC work.
-- **Cisco CCNP Data Center:** Advanced networking for DC environments.
-
-**Entry-Level DC Job Titles:**
-Data Center Technician, Data Center Operations Technician, Infrastructure Technician, NOC Technician, Field Service Technician
-
-**Typical Salary Range (US):**
-- Entry DC Tech: $45,000–$65,000
-- Mid-level (2–3 yrs): $65,000–$90,000
-- Senior DC Tech: $85,000–$115,000+
-
-**Your Biggest Advantage:**
-Your 20 years of desktop experience isn't just background — it's a superpower. You already know hardware troubleshooting, customer communication, ticket systems, and how to work systematically. Emphasize your hardware troubleshooting depth, your ability to work independently, and your documentation habits in interviews.
-
-**Next Steps:**
-1. Schedule your CompTIA Server+ exam (aim for 60 days)
-2. Set up a home lab with a used server (Dell R620/R630 on eBay for ~$200)
-3. Practice iDRAC, RAID configuration, ESXi installation
-4. Apply to entry DC tech roles — you're more qualified than you think!`,
+        content: [
+          { type: "heading", text: "Tier 1 Certifications — Get These First" },
+          { type: "bullets", items: ["CompTIA Server+: Most directly relevant to DC tech work. Covers hardware, storage, networking, troubleshooting. ~$370 exam.", "CompTIA Network+: Validates networking fundamentals essential for DC floor work.", "OSHA 10 (General Industry): Safety certification required or preferred by most DCs. ~$60, completed online."] },
+          { type: "heading", text: "Tier 2 — After 6–12 Months in Role" },
+          { type: "bullets", items: ["Cisco CCNA: Gold standard for networking. 3–6 months to prepare. Opens doors significantly.", "VMware VCP (vSphere): Virtualization is everywhere in DCs. Highly valued.", "BICSI Installer 2: Structured cabling professional credential."] },
+          { type: "heading", text: "Your Biggest Advantage" },
+          { type: "body", text: "20 years of desktop experience is a superpower in DC interviews. You already know hardware troubleshooting, ticket systems, and systematic problem-solving. Most DC tech candidates come from no IT background at all. Emphasize your depth, your documentation habits, and your ability to work independently under pressure." }
+        ],
         quiz: [
-          { q: "What CompTIA certification is most directly relevant for a new DC technician?", a: "CompTIA Server+ — covers server hardware, storage, networking, and troubleshooting specific to data center environments" },
-          { q: "What is a good first home lab server to practice on?", a: "A used Dell PowerEdge R620 or R630 — available on eBay for ~$200 and supports iDRAC, RAID, and ESXi" },
-          { q: "Name two career advantages a 20-year desktop tech has over a typical DC tech candidate.", a: "Deep hardware troubleshooting experience, familiarity with ticketing systems, customer communication skills, systematic problem-solving (any two valid)" }
+          { q: "Which CompTIA certification is most directly relevant to an entry-level data center technician role?", options: ["CompTIA A+ — for general hardware and OS support", "CompTIA Server+ — covers server hardware, storage, networking, and DC troubleshooting", "CompTIA Security+ — for cybersecurity fundamentals", "CompTIA Cloud+ — for cloud infrastructure management"], correct: 1 },
+          { q: "What is a recommended first home lab server for a DC tech student on a budget?", options: ["A Mac Pro — because it supports ECC RAM and has good expansion", "A Dell PowerEdge R620 or R630 — available for ~$150–$200 on eBay, supports iDRAC, RAID, and ESXi", "A Raspberry Pi cluster — because it teaches distributed computing at low cost", "A desktop workstation with a RAID card — because it's cheaper than a server"], correct: 1 },
+          { q: "Which certification is the gold standard for networking and opens the most doors for DC tech advancement?", options: ["CompTIA Network+ — because it's vendor-neutral and widely recognized", "Cisco CCNA — because it validates practical networking skills at an industry-recognized level", "VMware VCP — because virtualization is the most in-demand DC skill", "OSHA 10 — because safety certifications are required by all employers"], correct: 1 }
         ]
       }
     ]
@@ -595,79 +324,135 @@ Your 20 years of desktop experience isn't just background — it's a superpower.
 ];
 
 const allLessons = curriculum.flatMap(w => w.lessons);
-const { useState } = React;
+const TOTAL_QUESTIONS = allLessons.reduce((sum, l) => sum + l.quiz.length, 0);
 
-function renderContent(text) {
-  const lines = text.split('\n');
-  return lines.map((line, i) => {
-    if (!line.trim()) return React.createElement('div', { key: i, style: { height: 8 } });
-    if (line.startsWith('• **') || line.startsWith('- **')) {
-      const bullet = line.startsWith('• ') ? '›' : '—';
-      const inner = line.replace(/^[•\-] /, '');
-      const parts = inner.split(/\*\*(.*?)\*\*/g);
-      return React.createElement('div', { key: i, style: { display: 'flex', gap: 8, marginBottom: 4 } },
-        React.createElement('span', { style: { color: '#00d4ff', flexShrink: 0 } }, bullet),
-        React.createElement('span', null, parts.map((p, j) =>
-          j % 2 === 1 ? React.createElement('strong', { key: j, style: { color: '#00d4ff99' } }, p) : p
-        ))
-      );
-    }
-    if (line.startsWith('• ')) return React.createElement('div', { key: i, style: { display: 'flex', gap: 8, marginBottom: 4 } },
-      React.createElement('span', { style: { color: '#00d4ff', flexShrink: 0 } }, '›'),
-      React.createElement('span', null, line.slice(2))
+function renderContent(blocks) {
+  return blocks.map((block, i) => {
+    if (block.type === 'body') return <p key={i} style={{ fontSize: 13, lineHeight: 1.8, color: '#a0b4c8', marginBottom: 14 }}>{block.text}</p>;
+    if (block.type === 'heading') return <p key={i} style={{ fontWeight: 700, color: '#00d4ff', marginTop: 18, marginBottom: 8, fontSize: 13, letterSpacing: '0.04em' }}>▸ {block.text}</p>;
+    if (block.type === 'bullets') return (
+      <ul key={i} style={{ listStyle: 'none', marginBottom: 12 }}>
+        {block.items.map((item, j) => {
+          const parts = item.split(/\*\*(.*?)\*\*/g);
+          return <li key={j} style={{ display: 'flex', gap: 8, marginBottom: 5, fontSize: 13, lineHeight: 1.6 }}>
+            <span style={{ color: '#00d4ff', flexShrink: 0 }}>›</span>
+            <span>{parts.map((p, k) => k % 2 === 1 ? <strong key={k} style={{ color: '#00ffea' }}>{p}</strong> : p)}</span>
+          </li>;
+        })}
+      </ul>
     );
-    if (line.startsWith('- ')) return React.createElement('div', { key: i, style: { display: 'flex', gap: 8, marginBottom: 4 } },
-      React.createElement('span', { style: { color: '#5a7a9a', flexShrink: 0 } }, '—'),
-      React.createElement('span', null, line.slice(2).replace(/\*\*(.*?)\*\*/g, (_, t) => t))
-    );
-    if (/^\d+\./.test(line)) return React.createElement('div', { key: i, style: { display: 'flex', gap: 8, marginBottom: 4 } },
-      React.createElement('span', { style: { color: '#00d4ff66', flexShrink: 0, minWidth: 16 } }, line.match(/^\d+/)[0] + '.'),
-      React.createElement('span', null, line.replace(/^\d+\.\s*/, ''))
-    );
-    if (line.startsWith('**') && line.endsWith('**')) return React.createElement('p', { key: i, style: { fontWeight: 700, color: '#00d4ff', marginTop: 16, marginBottom: 4 } }, line.replace(/\*\*/g, ''));
-    const parts = line.split(/\*\*(.*?)\*\*/g);
-    if (parts.length > 1) return React.createElement('p', { key: i, style: { marginBottom: 4, lineHeight: 1.7 } },
-      parts.map((p, j) => j % 2 === 1 ? React.createElement('strong', { key: j, style: { color: '#c8d6e5' } }, p) : p)
-    );
-    return React.createElement('p', { key: i, style: { marginBottom: 4, lineHeight: 1.7 } }, line);
+    return null;
   });
 }
 
 function App() {
   const [currentLesson, setCurrentLesson] = useState(null);
-  const [completedLessons, setCompletedLessons] = useState([]);
+  const [completedLessons, setCompletedLessons] = useState({});
   const [quizIndex, setQuizIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [answered, setAnswered] = useState(false);
   const [totalXP, setTotalXP] = useState(0);
+  const [totalCorrect, setTotalCorrect] = useState(0);
   const [view, setView] = useState('dashboard');
+  const [studentName, setStudentName] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const completedCount = Object.keys(completedLessons).length;
+  const progress = (completedCount / allLessons.length) * 100;
+  const allDone = completedCount === allLessons.length;
 
   const openLesson = (lesson) => {
     setCurrentLesson(lesson);
     setQuizIndex(0);
-    setShowAnswer(false);
+    setSelectedOption(null);
+    setAnswered(false);
     setView('lesson');
   };
 
   const startQuiz = () => {
     setQuizIndex(0);
-    setShowAnswer(false);
+    setSelectedOption(null);
+    setAnswered(false);
     setView('quiz');
+  };
+
+  const handleOptionSelect = (idx) => {
+    if (answered) return;
+    setSelectedOption(idx);
+    setAnswered(true);
+    const correct = idx === currentLesson.quiz[quizIndex].correct;
+    if (correct) setTotalCorrect(c => c + 1);
   };
 
   const nextQuestion = () => {
     if (quizIndex < currentLesson.quiz.length - 1) {
       setQuizIndex(q => q + 1);
-      setShowAnswer(false);
+      setSelectedOption(null);
+      setAnswered(false);
     } else {
-      if (!completedLessons.includes(currentLesson.day)) {
-        setCompletedLessons(p => [...p, currentLesson.day]);
+      if (!completedLessons[currentLesson.day]) {
+        const lessonScore = currentLesson.quiz.reduce((acc, _, qi) => acc, 0);
+        setCompletedLessons(p => ({ ...p, [currentLesson.day]: true }));
         setTotalXP(x => x + currentLesson.xp);
       }
       setView('complete');
     }
   };
 
-  const progress = (completedLessons.length / allLessons.length) * 100;
+  const buildBreakdown = () => {
+    return allLessons.map(l => `Day ${l.day}: ${completedLessons[l.day] ? 'Complete' : 'Incomplete'}`).join(' | ');
+  };
+
+  const submitToGoogleForm = (e) => {
+    e.preventDefault();
+    if (!studentName.trim() || !studentEmail.trim()) {
+      setFormError('Please enter your name and email before submitting.');
+      return;
+    }
+    if (studentEmail.trim().length < 3) {
+      setFormError('Please enter a valid Student Login ID.');
+      return;
+    }
+    setFormError('');
+
+    const cfg = GOOGLE_FORM_CONFIG;
+    const formUrl = `https://docs.google.com/forms/d/${cfg.formId}/formResponse`;
+    const params = new URLSearchParams({
+      [cfg.fields.studentName]: studentName,
+      [cfg.fields.studentLoginId]: studentEmail,
+      [cfg.fields.totalScore]: totalCorrect,
+      [cfg.fields.totalPossible]: TOTAL_QUESTIONS,
+      [cfg.fields.lessonBreakdown]: buildBreakdown(),
+      [cfg.fields.completionDate]: new Date().toLocaleDateString('en-US')
+    });
+
+    // Submit via hidden iframe to avoid navigation
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.name = 'hidden_iframe';
+    document.body.appendChild(iframe);
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = formUrl;
+    form.target = 'hidden_iframe';
+    params.forEach((val, key) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = val;
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => {
+      document.body.removeChild(form);
+      document.body.removeChild(iframe);
+    }, 3000);
+
+    setFormSubmitted(true);
+  };
 
   // ── DASHBOARD ──
   if (view === 'dashboard') return (
@@ -675,52 +460,54 @@ function App() {
       <div style={{ borderBottom: '1px solid #00d4ff22', padding: '20px 24px 16px', background: '#060b14' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 11, letterSpacing: '0.25em', color: '#00d4ff99', marginBottom: 4 }}>CURRICULUM</div>
-            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, fontWeight: 900, color: '#00d4ff', letterSpacing: '0.05em' }}>DATA CENTER TECH</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 11, letterSpacing: '0.25em', color: '#00d4ff99', marginBottom: 4 }}>TECH CATCH UP COURSES</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, fontWeight: 900, color: '#00d4ff' }}>DATA CENTER TECH</div>
             <div style={{ fontSize: 11, color: '#5a7a9a', marginTop: 2 }}>15-Minute Daily Lessons · 3-Week Curriculum</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, color: '#5a7a9a', letterSpacing: '0.1em' }}>TOTAL XP</div>
-            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 28, fontWeight: 900, color: '#00d4ff' }}>{totalXP}</div>
-            <div style={{ fontSize: 11, color: '#5a7a9a' }}>{completedLessons.length} / {allLessons.length} lessons complete</div>
+            <div style={{ fontSize: 11, color: '#5a7a9a' }}>SCORE</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, fontWeight: 900, color: '#00d4ff' }}>{totalCorrect} / {TOTAL_QUESTIONS}</div>
+            <div style={{ fontSize: 11, color: '#5a7a9a' }}>{completedCount} / {allLessons.length} lessons · {totalXP} XP</div>
           </div>
         </div>
-        <div style={{ marginTop: 16, height: 4, background: '#0f1e2e', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ marginTop: 14, height: 4, background: '#0f1e2e', borderRadius: 2, overflow: 'hidden' }}>
           <div className="progress-bar-inner" style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg,#00d4ff,#00ffea)', borderRadius: 2 }} />
         </div>
+        {allDone && (
+          <div style={{ marginTop: 12, padding: '10px 14px', background: '#0a2a0a', border: '1px solid #00c85344', borderRadius: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <span style={{ fontSize: 12, color: '#69f0ae' }}>✓ All 15 lessons complete — submit your results for course credit</span>
+            <button className="btn-primary" onClick={() => setView('submit')} style={{ padding: '6px 16px', fontSize: 11, borderRadius: 2, background: '#00c853', color: '#0a0f1a' }}>SUBMIT RESULTS →</button>
+          </div>
+        )}
       </div>
 
       <div style={{ padding: '20px 24px', maxWidth: 900, margin: '0 auto' }}>
         {curriculum.map(week => (
-          <div key={week.week} style={{ marginBottom: 32 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <div key={week.week} style={{ marginBottom: 30 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
               <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, letterSpacing: '0.2em', color: '#00d4ff66', border: '1px solid #00d4ff22', padding: '3px 8px', borderRadius: 2 }}>WEEK {week.week}</div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#8ab4d4' }}>{week.theme}</div>
               <div style={{ flex: 1, height: 1, background: '#00d4ff11' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 10 }}>
               {week.lessons.map(lesson => {
-                const done = completedLessons.includes(lesson.day);
+                const done = !!completedLessons[lesson.day];
                 return (
                   <div key={lesson.day} className="lesson-card" onClick={() => openLesson(lesson)}
                     style={{ border: `1px solid ${done ? '#00d4ff44' : '#1a2a3a'}`, borderRadius: 4, padding: '14px 16px', background: done ? '#0a1a24' : '#0d1420', position: 'relative', overflow: 'hidden' }}>
                     {done && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg,#00d4ff,#00ffea)' }} />}
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span className="lesson-num" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, color: done ? '#00d4ff' : '#2a4a6a', fontWeight: 700 }}>DAY {lesson.day}</span>
-                      {done ? <span style={{ fontSize: 10, color: '#00d4ff', background: '#00d4ff11', padding: '2px 6px', borderRadius: 2 }}>✓ +{lesson.xp}XP</span> : <span style={{ fontSize: 10, color: '#2a4a6a' }}>{lesson.xp} XP</span>}
+                      <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, color: done ? '#00d4ff' : '#2a4a6a', fontWeight: 700 }}>DAY {lesson.day}</span>
+                      {done ? <span style={{ fontSize: 10, color: '#00c853' }}>✓ COMPLETE</span> : <span style={{ fontSize: 10, color: '#2a4a6a' }}>{lesson.xp} XP</span>}
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: done ? '#c8d6e5' : '#8ab4d4', marginTop: 6, lineHeight: 1.4 }}>{lesson.title}</div>
-                    <div style={{ fontSize: 11, color: '#3a5a7a', marginTop: 6 }}>{lesson.duration} · {lesson.quiz.length} quiz questions</div>
+                    <div style={{ fontSize: 11, color: '#3a5a7a', marginTop: 6 }}>{lesson.duration} · {lesson.quiz.length} questions</div>
                   </div>
                 );
               })}
             </div>
           </div>
         ))}
-        <div style={{ border: '1px solid #00d4ff22', borderRadius: 4, padding: '14px 16px', background: '#060b14', marginTop: 8 }}>
-          <div style={{ fontSize: 10, letterSpacing: '0.15em', color: '#00d4ff66', marginBottom: 6 }}>💡 PRO TIP</div>
-          <div style={{ fontSize: 12, color: '#5a7a9a', lineHeight: 1.6 }}>Complete one lesson per day. Read the content, then take the quiz before moving on. Each quiz question reinforces the key concepts you'll encounter on the job and in certification exams.</div>
-        </div>
       </div>
     </div>
   );
@@ -758,43 +545,148 @@ function App() {
           </div>
           <span style={{ fontSize: 12, color: '#5a7a9a' }}>{quizIndex + 1} / {currentLesson.quiz.length}</span>
         </div>
-        <div style={{ maxWidth: 600, margin: '60px auto', padding: '0 24px' }}>
-          <div style={{ fontSize: 10, letterSpacing: '0.2em', color: '#00d4ff66', marginBottom: 20 }}>QUESTION {quizIndex + 1}</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#c8d6e5', lineHeight: 1.5, marginBottom: 32 }}>{q.q}</div>
-          {!showAnswer
-            ? <button className="btn-primary" onClick={() => setShowAnswer(true)} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, width: '100%' }}>REVEAL ANSWER</button>
-            : <div>
-                <div style={{ border: '1px solid #00d4ff44', borderRadius: 4, padding: '16px 20px', background: '#0a1a24', marginBottom: 20 }}>
-                  <div style={{ fontSize: 10, color: '#00d4ff66', letterSpacing: '0.15em', marginBottom: 8 }}>ANSWER</div>
-                  <div style={{ fontSize: 14, color: '#00ffea', lineHeight: 1.6 }}>{q.a}</div>
-                </div>
-                <button className="btn-primary" onClick={nextQuestion} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, width: '100%' }}>
-                  {quizIndex < currentLesson.quiz.length - 1 ? 'NEXT QUESTION →' : 'COMPLETE LESSON ✓'}
-                </button>
+        <div style={{ maxWidth: 660, margin: '40px auto', padding: '0 24px' }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.2em', color: '#00d4ff66', marginBottom: 16 }}>QUESTION {quizIndex + 1} OF {currentLesson.quiz.length}</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#c8d6e5', lineHeight: 1.5, marginBottom: 28 }}>{q.question || q.q}</div>
+
+          {q.options.map((opt, idx) => {
+            let cls = 'option-btn';
+            if (answered) {
+              if (idx === q.correct) cls += ' option-correct';
+              else if (idx === selectedOption && idx !== q.correct) cls += ' option-wrong';
+            }
+            return (
+              <button key={idx} className={cls} onClick={() => handleOptionSelect(idx)} disabled={answered}>
+                <span style={{ color: answered ? 'inherit' : '#5a7a9a', marginRight: 10, fontWeight: 700 }}>{String.fromCharCode(65 + idx)}.</span>
+                {opt}
+                {answered && idx === q.correct && <span style={{ float: 'right', marginLeft: 8 }}>✓</span>}
+                {answered && idx === selectedOption && idx !== q.correct && <span style={{ float: 'right', marginLeft: 8 }}>✗</span>}
+              </button>
+            );
+          })}
+
+          {answered && (
+            <div style={{ marginTop: 16, padding: '12px 16px', background: selectedOption === q.correct ? '#0a2a0a' : '#2a0a0a', border: `1px solid ${selectedOption === q.correct ? '#00c85344' : '#ff174444'}`, borderRadius: 4, marginBottom: 20 }}>
+              <div style={{ fontSize: 12, color: selectedOption === q.correct ? '#69f0ae' : '#ff8a80', fontWeight: 700, marginBottom: 4 }}>
+                {selectedOption === q.correct ? '✓ CORRECT' : '✗ INCORRECT'}
               </div>
-          }
+              {selectedOption !== q.correct && (
+                <div style={{ fontSize: 12, color: '#8ab4d4' }}>Correct answer: <strong style={{ color: '#69f0ae' }}>{q.options[q.correct]}</strong></div>
+              )}
+            </div>
+          )}
+
+          {answered && (
+            <button className="btn-primary" onClick={nextQuestion} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, width: '100%' }}>
+              {quizIndex < currentLesson.quiz.length - 1 ? 'NEXT QUESTION →' : 'COMPLETE LESSON ✓'}
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
-  // ── COMPLETE ──
+  // ── LESSON COMPLETE ──
   if (view === 'complete') return (
-    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0f1a', minHeight: '100vh', color: '#c8d6e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ textAlign: 'center', padding: 40 }}>
-        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 56, color: '#00d4ff', marginBottom: 12 }}>✓</div>
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0f1a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center', padding: 40, maxWidth: 480 }}>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 52, color: '#00d4ff', marginBottom: 12 }}>✓</div>
         <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 18, color: '#00d4ff', marginBottom: 8 }}>LESSON COMPLETE</div>
         <div style={{ fontSize: 13, color: '#8ab4d4', marginBottom: 4 }}>{currentLesson?.title}</div>
-        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 36, color: '#00ffea', margin: '20px 0' }}>+{currentLesson?.xp} XP</div>
-        <div style={{ fontSize: 12, color: '#5a7a9a', marginBottom: 32 }}>Total XP: {totalXP} · {completedLessons.length} / {allLessons.length} lessons complete</div>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 30, color: '#00ffea', margin: '20px 0' }}>+{currentLesson?.xp} XP</div>
+        <div style={{ fontSize: 12, color: '#5a7a9a', marginBottom: 8 }}>Overall Score: {totalCorrect} / {TOTAL_QUESTIONS} correct</div>
+        <div style={{ fontSize: 12, color: '#5a7a9a', marginBottom: 32 }}>{completedCount} / {allLessons.length} lessons complete</div>
+        {completedCount === allLessons.length && (
+          <div style={{ marginBottom: 20, padding: '12px', background: '#0a2a0a', border: '1px solid #00c85344', borderRadius: 4 }}>
+            <div style={{ fontSize: 12, color: '#69f0ae', marginBottom: 8 }}>🎓 All lessons complete! Submit your results for course credit.</div>
+            <button className="btn-primary" onClick={() => setView('submit')} style={{ padding: '8px 20px', fontSize: 12, borderRadius: 2, background: '#00c853', color: '#0a0f1a' }}>SUBMIT FOR CREDIT →</button>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button className="btn-primary" onClick={() => setView('dashboard')} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2 }}>← CURRICULUM</button>
           {currentLesson && currentLesson.day < allLessons.length && (
-            <button className="btn-primary" onClick={() => openLesson(allLessons[currentLesson.day])} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, background: '#00ffea' }}>
-              NEXT LESSON →
-            </button>
+            <button className="btn-primary" onClick={() => openLesson(allLessons[currentLesson.day])} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, background: '#00ffea', color: '#0a0f1a' }}>NEXT LESSON →</button>
           )}
         </div>
+      </div>
+    </div>
+  );
+
+  // ── SUBMISSION FORM ──
+  if (view === 'submit') return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0f1a', minHeight: '100vh', color: '#c8d6e5' }}>
+      <div style={{ borderBottom: '1px solid #00d4ff22', padding: '14px 24px', background: '#060b14', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button className="btn-ghost" onClick={() => setView('dashboard')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← BACK</button>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, color: '#00d4ff' }}>SUBMIT COURSE RESULTS</div>
+      </div>
+
+      <div style={{ maxWidth: 560, margin: '40px auto', padding: '0 24px' }}>
+        {!formSubmitted ? (
+          <>
+            <div style={{ marginBottom: 32, padding: '20px', background: '#060b14', border: '1px solid #00d4ff22', borderRadius: 4 }}>
+              <div style={{ fontSize: 10, color: '#00d4ff66', letterSpacing: '0.15em', marginBottom: 12 }}>YOUR RESULTS SUMMARY</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ padding: '10px', background: '#0a1a24', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: '#00d4ff' }}>{totalCorrect}/{TOTAL_QUESTIONS}</div>
+                  <div style={{ fontSize: 10, color: '#5a7a9a', marginTop: 4 }}>QUESTIONS CORRECT</div>
+                </div>
+                <div style={{ padding: '10px', background: '#0a1a24', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: '#00ffea' }}>{Math.round((totalCorrect / TOTAL_QUESTIONS) * 100)}%</div>
+                  <div style={{ fontSize: 10, color: '#5a7a9a', marginTop: 4 }}>FINAL SCORE</div>
+                </div>
+                <div style={{ padding: '10px', background: '#0a1a24', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: '#00d4ff' }}>{totalXP}</div>
+                  <div style={{ fontSize: 10, color: '#5a7a9a', marginTop: 4 }}>TOTAL XP EARNED</div>
+                </div>
+                <div style={{ padding: '10px', background: '#0a1a24', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: '#69f0ae' }}>{completedCount}/15</div>
+                  <div style={{ fontSize: 10, color: '#5a7a9a', marginTop: 4 }}>LESSONS COMPLETE</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 11, color: '#5a7a9a', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>YOUR FIRST NAME</label>
+              <input type="text" placeholder="First Name Only" value={studentName} onChange={e => setStudentName(e.target.value)} />
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ fontSize: 11, color: '#5a7a9a', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>YOUR STUDENT LOGIN ID</label>
+              <input type="text" placeholder="Student Login ID" value={studentEmail} onChange={e => setStudentEmail(e.target.value)} />
+            </div>
+
+            {formError && <div style={{ marginBottom: 16, padding: '10px 14px', background: '#2a0a0a', border: '1px solid #ff174444', borderRadius: 4, fontSize: 12, color: '#ff8a80' }}>{formError}</div>}
+
+            <div style={{ marginBottom: 20, padding: '10px 14px', background: '#0a1420', border: '1px solid #1a2a3a', borderRadius: 4, fontSize: 11, color: '#5a7a9a', lineHeight: 1.6 }}>
+              Your first name, student login ID, score, and lesson completion record will be submitted to your instructor for course credit and Arizona Department of Education reporting. No additional personal information is collected or stored.
+            </div>
+
+            <button className="btn-primary" onClick={submitToGoogleForm} style={{ padding: '12px', fontSize: 13, borderRadius: 2, width: '100%' }}>
+              SUBMIT RESULTS FOR COURSE CREDIT →
+            </button>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 52, color: '#69f0ae', marginBottom: 16 }}>🎓</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, color: '#69f0ae', marginBottom: 12 }}>SUBMISSION COMPLETE</div>
+            <div style={{ fontSize: 13, color: '#8ab4d4', marginBottom: 24, lineHeight: 1.7 }}>
+              Your results have been submitted successfully.<br/>
+              <strong style={{ color: '#c8d6e5' }}>{studentName}</strong> · Login ID: {studentEmail}
+            </div>
+            <div style={{ padding: '20px', background: '#060b14', border: '1px solid #69f0ae33', borderRadius: 4, marginBottom: 28 }}>
+              <div style={{ fontSize: 11, color: '#5a7a9a', marginBottom: 12, letterSpacing: '0.1em' }}>COMPLETION CERTIFICATE</div>
+              <div style={{ fontSize: 13, color: '#c8d6e5', lineHeight: 1.8 }}>
+                <div><span style={{ color: '#5a7a9a' }}>Student:</span> {studentName}</div>
+                <div><span style={{ color: '#5a7a9a' }}>Login ID:</span> {studentEmail}</div>
+                <div><span style={{ color: '#5a7a9a' }}>Course:</span> Data Center Technician Fundamentals</div>
+                <div><span style={{ color: '#5a7a9a' }}>Score:</span> {totalCorrect} / {TOTAL_QUESTIONS} ({Math.round((totalCorrect / TOTAL_QUESTIONS) * 100)}%)</div>
+                <div><span style={{ color: '#5a7a9a' }}>Lessons:</span> {completedCount} of 15 complete</div>
+                <div><span style={{ color: '#5a7a9a' }}>Date:</span> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <div><span style={{ color: '#5a7a9a' }}>Provider:</span> TechCatchUp Courses</div>
+              </div>
+            </div>
+            <button className="btn-primary" onClick={() => setView('dashboard')} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2 }}>← BACK TO CURRICULUM</button>
+          </div>
+        )}
       </div>
     </div>
   );
