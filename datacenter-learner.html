@@ -1,10 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- ============================================================
+  STANDARDS ALIGNMENT — NOTES FOR FUTURE MAINTAINERS
+  ------------------------------------------------------------
+  Compiled June 2026. Sourced from live azed.gov / csteachers.org
+  documents at write time — verify against current versions before
+  citing in any admin-facing report, since standards documents are
+  revised periodically.
+
+  This course is Career & Technical Education (CTE) content, not
+  K-12 Computer Science content. AZ CS / CSTA K-12 standards (the
+  ones used for the CS Survey course in this same project) are a
+  poor fit for facility-operations material like PUE, RAID, ASHRAE
+  cooling specs, or ITIL incident response. Two current Arizona CTE
+  Technical Standards documents cover this content instead:
+
+   • Network Security — CIP 11.1999.00
+     Endorsed by the AZ CTE Quality Commission, May 14, 2024.
+     https://www.azed.gov/sites/default/files/2024/08/NetworkSecurityTS.pdf
+     Covers: networking, hardening, security threats, protocols,
+     troubleshooting, legal/ethical issues.
+
+   • Technology Devices Maintenance — CIP 15.1202.00
+     Endorsed by the AZ CTE Quality Commission, July 13, 2020.
+     https://www.azed.gov/sites/default/files/2025/02/TechnologyDevicesMaintenanceTS.pdf
+     Covers: hardware components, motherboards/CPU/RAM, storage
+     and RAID, printers, OS basics, hardware troubleshooting.
+
+  NEITHER document has standards written specifically for data
+  center facility operations (raised floors, hot/cold aisle design,
+  power redundancy tiers, change management/CAB process, DC-specific
+  certifications). Those lessons (Days 1, 2, 4, 5, 11, 12, 14, 15)
+  are mapped to the CLOSEST applicable standard below, not an exact
+  match — flag this explicitly if presenting to admin for credit
+  approval, rather than implying full 1:1 alignment.
+
+  Per-lesson mapping (Day → Standard):
+   Day 1  What Is a Data Center?         → NetworkSec 1.1, 1.2 (career/role) — facility types are NOT in either doc
+   Day 2  Physical Layout (hot/cold aisle)→ No direct AZ CTE standard found — facility-specific
+   Day 3  Rack Standards & U Space        → TechDevMaint 6.3 (cable/component handling) — partial fit only
+   Day 4  Power Infrastructure            → TechDevMaint 7.10 (Ohm's Law, wattage/voltage/amperage)
+   Day 5  Cooling Systems                 → TechDevMaint 7.7 (environmental factors: heat, humidity, vibration)
+   Day 6  Server Hardware Deep Dive       → TechDevMaint 6.1, 7.1–7.6 (system components, motherboard/CPU/RAM)
+   Day 7  Out-of-Band Management          → NetworkSec 8.6–8.9; TechDevMaint 10.3 (admin tools, remote config)
+   Day 8  RAID & Storage Basics           → TechDevMaint 10.5 (data redundancy: NAS, RAID, cloud storage)
+   Day 9  Structured Cabling & Fiber      → NetworkSec 6.1, 6.4 (network media, connectors)
+   Day 10 Networking for DC Techs         → NetworkSec 6.9, 8.8 (network components, device connection)
+   Day 11 DC Safety & Compliance          → NetworkSec 2.1–2.2; TechDevMaint 2.1–2.4 (safety, ESD, OSHA) — general safety standards only, not DC-specific (arc flash, fire suppression not covered in either doc)
+   Day 12 Change Management & Ticketing   → No direct AZ CTE standard found — ITIL/ITSM is industry practice, not in either doc
+   Day 13 Monitoring & Alerting           → NetworkSec 10.3, 10.7 (network utilities, monitoring tools) — partial fit
+   Day 14 Incident Response & Escalation  → NetworkSec 10.1 (troubleshooting process) — partial fit, escalation/PIR not covered
+   Day 15 Certifications & Career Path    → NetworkSec 1.4, 1.5 (industry certifications, career opportunities)
+
+  CSTA K-12 Computer Science Standards (csteachers.org), Revised 2017,
+  are the current published version as of this writing. CSTA has an
+  active revision in progress with a NEW version expected to launch
+  at the CSTA Annual Conference, July 2026 — check csteachers.org/k12standards
+  before citing CSTA codes in any new admin documentation written after
+  that date, since identifiers may change in the revision.
+  This course (CTE/career content) does not itself need CSTA K-12
+  citations — those apply to the separate CS Survey course in this
+  project. Noted here only so a future maintainer doesn't conflate
+  the two courses' standards frameworks.
+============================================================ -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Data Center Technician — 15-Min Daily Lessons</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://docs.google.com; form-action https://docs.google.com; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://accounts.google.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.googleusercontent.com; connect-src https://docs.google.com https://accounts.google.com; frame-src https://accounts.google.com; form-action https://docs.google.com; base-uri 'self';">
 <script>
   window.addEventListener('click', function(e) {
     var target = e.target.closest('a');
@@ -14,6 +77,8 @@
   }, true);
   window.open = function() { return null; };
 </script>
+<!-- Google Identity Services (silent OAuth sign-in) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -38,6 +103,14 @@
   .progress-bar-inner { transition: width 0.5s ease; }
   input[type=text], input[type=email] { background: #0d1420; border: 1px solid #1a2a3a; color: #c8d6e5; font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 14px; border-radius: 4px; width: 100%; outline: none; transition: border-color 0.2s; }
   input[type=text]:focus, input[type=email]:focus { border-color: #00d4ff66; }
+
+  /* ── LOCKDOWN MODULE: disable text selection sitewide ── */
+  * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+  input, textarea, [contenteditable="true"] { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+  img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
+  ::selection { background: transparent; }
+
+  .gsi-signin-card { background: #060b14; border: 1px solid #00d4ff22; border-radius: 6px; padding: 36px 32px; max-width: 420px; text-align: center; }
 </style>
 </head>
 <body>
@@ -46,20 +119,28 @@
 const { useState, useEffect } = React;
 
 // ─────────────────────────────────────────
-// GOOGLE FORM CONFIGURATION
-// Replace these with your actual Google Form values after creating the form
+// GOOGLE OAUTH CONFIGURATION
+// ─────────────────────────────────────────
+const GOOGLE_OAUTH_CLIENT_ID = "739086238293-h96tav9cuc2sh59gcnvg7m75po1ibne3.apps.googleusercontent.com";
+
+// ─────────────────────────────────────────
+// GOOGLE FORM CONFIGURATION — Master Tracking Log (per-lesson submissions)
 // ─────────────────────────────────────────
 const GOOGLE_FORM_CONFIG = {
-  formId: "1FAIpQLSdFJXSlyMbvwuVYmNVnhgs-zFtRh5nogkuM2e_MtV2y4tJW0A",
+  formId: "1FAIpQLSdvmpjiQ9k1FZCv0khGZBWoIF0kqWPvgnyylLQRgy4IDM0nMw",
   fields: {
-    studentName: "entry.1022229287",
-    studentLoginId: "entry.2133439977",
-    totalScore: "entry.1095302319",
-    totalPossible: "entry.1860480276",
-    lessonBreakdown: "entry.732985953",
-    completionDate: "entry.385037905"
+    studentEmail: "entry.659729629",
+    studentDisplayName: "entry.642379464",
+    courseName: "entry.1731057226",
+    lessonNumber: "entry.1406985482",
+    lessonTitle: "entry.865807923",
+    lessonScore: "entry.1202968821",
+    cumulativeScore: "entry.552925036",
+    sessionTimestamp: "entry.1138914731"
   }
 };
+
+const COURSE_NAME = "Data Center Career";
 
 const curriculum = [
   {
@@ -353,21 +434,70 @@ function App() {
   const [answered, setAnswered] = useState(false);
   const [totalXP, setTotalXP] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
-  const [view, setView] = useState('dashboard');
-  const [studentName, setStudentName] = useState('');
-  const [studentEmail, setStudentEmail] = useState('');
+  const [view, setView] = useState('signin');
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formError, setFormError] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
+  const [studentDisplayName, setStudentDisplayName] = useState('');
+  const [signinError, setSigninError] = useState('');
+  const [lastLessonSubmitStatus, setLastLessonSubmitStatus] = useState(null); // 'ok' | 'fail' | null
+  const [lessonCorrectCount, setLessonCorrectCount] = useState(0);
 
   const completedCount = Object.keys(completedLessons).length;
   const progress = (completedCount / allLessons.length) * 100;
   const allDone = completedCount === allLessons.length;
+
+  // ── GOOGLE SIGN-IN (silent, picks up existing Chromebook session) ──
+  useEffect(() => {
+    function decodeJwt(token) {
+      try {
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(decodeURIComponent(atob(base64).split('').map(c =>
+          '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join('')));
+      } catch (err) { return null; }
+    }
+
+    function handleCredentialResponse(response) {
+      const payload = decodeJwt(response.credential);
+      if (payload && payload.email) {
+        setStudentEmail(payload.email);
+        setStudentDisplayName(payload.name || payload.email);
+        setSigninError('');
+        setView('dashboard');
+      } else {
+        setSigninError('We could not verify your Google account. Please try again or ask your instructor for help.');
+      }
+    }
+
+    function initGsi() {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_OAUTH_CLIENT_ID,
+          callback: handleCredentialResponse,
+          auto_select: true
+        });
+        const btnContainer = document.getElementById('gsiButtonContainer');
+        if (btnContainer) {
+          window.google.accounts.id.renderButton(btnContainer, {
+            theme: 'filled_black', size: 'large', text: 'signin_with', shape: 'pill', width: 280
+          });
+        }
+        // Attempt silent sign-in using the Chromebook's existing Google session
+        window.google.accounts.id.prompt();
+      } else {
+        setTimeout(initGsi, 300);
+      }
+    }
+    if (view === 'signin') initGsi();
+  }, [view]);
 
   const openLesson = (lesson) => {
     setCurrentLesson(lesson);
     setQuizIndex(0);
     setSelectedOption(null);
     setAnswered(false);
+    setLessonCorrectCount(0);
     setView('lesson');
   };
 
@@ -375,6 +505,7 @@ function App() {
     setQuizIndex(0);
     setSelectedOption(null);
     setAnswered(false);
+    setLessonCorrectCount(0);
     setView('quiz');
   };
 
@@ -383,60 +514,27 @@ function App() {
     setSelectedOption(idx);
     setAnswered(true);
     const correct = idx === currentLesson.quiz[quizIndex].correct;
-    if (correct) setTotalCorrect(c => c + 1);
-  };
-
-  const nextQuestion = () => {
-    if (quizIndex < currentLesson.quiz.length - 1) {
-      setQuizIndex(q => q + 1);
-      setSelectedOption(null);
-      setAnswered(false);
-    } else {
-      if (!completedLessons[currentLesson.day]) {
-        const lessonScore = currentLesson.quiz.reduce((acc, _, qi) => acc, 0);
-        setCompletedLessons(p => ({ ...p, [currentLesson.day]: true }));
-        setTotalXP(x => x + currentLesson.xp);
-      }
-      setView('complete');
+    if (correct) {
+      setTotalCorrect(c => c + 1);
+      setLessonCorrectCount(c => c + 1);
     }
   };
 
-  const buildBreakdown = () => {
-    return allLessons.map(l => `Day ${l.day}: ${completedLessons[l.day] ? 'Complete' : 'Incomplete'}`).join(' | ');
-  };
-
-  const submitToGoogleForm = (e) => {
-    e.preventDefault();
-    if (!studentName.trim() || !studentEmail.trim()) {
-      setFormError('Please enter your name and email before submitting.');
-      return;
-    }
-    if (studentEmail.trim().length < 3) {
-      setFormError('Please enter a valid Student Login ID.');
-      return;
-    }
-    setFormError('');
-
+  // Posts one row to the master Google Form via a hidden iframe (no navigation, no student action)
+  const postToGoogleForm = (fieldValues) => {
     const cfg = GOOGLE_FORM_CONFIG;
     const formUrl = `https://docs.google.com/forms/d/${cfg.formId}/formResponse`;
-    const params = new URLSearchParams({
-      [cfg.fields.studentName]: studentName,
-      [cfg.fields.studentLoginId]: studentEmail,
-      [cfg.fields.totalScore]: totalCorrect,
-      [cfg.fields.totalPossible]: TOTAL_QUESTIONS,
-      [cfg.fields.lessonBreakdown]: buildBreakdown(),
-      [cfg.fields.completionDate]: new Date().toLocaleDateString('en-US')
-    });
+    const params = new URLSearchParams(fieldValues);
 
-    // Submit via hidden iframe to avoid navigation
+    const iframeName = 'hidden_iframe_' + Date.now();
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
-    iframe.name = 'hidden_iframe';
+    iframe.name = iframeName;
     document.body.appendChild(iframe);
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = formUrl;
-    form.target = 'hidden_iframe';
+    form.target = iframeName;
     params.forEach((val, key) => {
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -447,12 +545,84 @@ function App() {
     document.body.appendChild(form);
     form.submit();
     setTimeout(() => {
-      document.body.removeChild(form);
-      document.body.removeChild(iframe);
+      if (form.parentNode) document.body.removeChild(form);
+      if (iframe.parentNode) document.body.removeChild(iframe);
     }, 3000);
-
-    setFormSubmitted(true);
   };
+
+  const submitLessonResult = (lesson, lessonCorrectCount, cumulativeCorrect) => {
+    try {
+      postToGoogleForm({
+        [GOOGLE_FORM_CONFIG.fields.studentEmail]: studentEmail,
+        [GOOGLE_FORM_CONFIG.fields.studentDisplayName]: studentDisplayName,
+        [GOOGLE_FORM_CONFIG.fields.courseName]: COURSE_NAME,
+        [GOOGLE_FORM_CONFIG.fields.lessonNumber]: String(lesson.day),
+        [GOOGLE_FORM_CONFIG.fields.lessonTitle]: lesson.title,
+        [GOOGLE_FORM_CONFIG.fields.lessonScore]: `${lessonCorrectCount}/${lesson.quiz.length}`,
+        [GOOGLE_FORM_CONFIG.fields.cumulativeScore]: `${cumulativeCorrect}/${TOTAL_QUESTIONS}`,
+        [GOOGLE_FORM_CONFIG.fields.sessionTimestamp]: new Date().toLocaleString('en-US')
+      });
+      setLastLessonSubmitStatus('ok');
+    } catch (err) {
+      setLastLessonSubmitStatus('fail');
+    }
+  };
+
+  const submitFinalSummary = () => {
+    try {
+      postToGoogleForm({
+        [GOOGLE_FORM_CONFIG.fields.studentEmail]: studentEmail,
+        [GOOGLE_FORM_CONFIG.fields.studentDisplayName]: studentDisplayName,
+        [GOOGLE_FORM_CONFIG.fields.courseName]: COURSE_NAME,
+        [GOOGLE_FORM_CONFIG.fields.lessonNumber]: "FINAL",
+        [GOOGLE_FORM_CONFIG.fields.lessonTitle]: "Course Complete — Final Summary",
+        [GOOGLE_FORM_CONFIG.fields.lessonScore]: `${totalCorrect}/${TOTAL_QUESTIONS}`,
+        [GOOGLE_FORM_CONFIG.fields.cumulativeScore]: `${totalCorrect}/${TOTAL_QUESTIONS}`,
+        [GOOGLE_FORM_CONFIG.fields.sessionTimestamp]: new Date().toLocaleString('en-US')
+      });
+      setFormSubmitted(true);
+    } catch (err) {
+      setFormError('Submission failed. Please tell your instructor your name and score.');
+    }
+  };
+
+  const nextQuestion = () => {
+    if (quizIndex < currentLesson.quiz.length - 1) {
+      setQuizIndex(q => q + 1);
+      setSelectedOption(null);
+      setAnswered(false);
+    } else {
+      const alreadyCompleted = !!completedLessons[currentLesson.day];
+      if (!alreadyCompleted) {
+        setCompletedLessons(p => ({ ...p, [currentLesson.day]: true }));
+        setTotalXP(x => x + currentLesson.xp);
+        // Only log to the tracking sheet the first time this lesson is completed —
+        // prevents duplicate rows if a student revisits a finished lesson later.
+        submitLessonResult(currentLesson, lessonCorrectCount, totalCorrect);
+      } else {
+        setLastLessonSubmitStatus(null);
+      }
+      setView('complete');
+    }
+  };
+
+  // ── SIGN IN ──
+  if (view === 'signin') return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0f1a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div className="gsi-signin-card">
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 11, letterSpacing: '0.25em', color: '#00d4ff99', marginBottom: 6 }}>TECH CATCH UP COURSES</div>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, fontWeight: 900, color: '#00d4ff', marginBottom: 18 }}>DATA CENTER TECH</div>
+        <div style={{ fontSize: 12, color: '#8ab4d4', marginBottom: 24, lineHeight: 1.7 }}>
+          Sign in with your school Google account to begin.<br/>If you're already signed in on this Chromebook, this should happen automatically.
+        </div>
+        <div id="gsiButtonContainer" style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}></div>
+        {signinError && (
+          <div style={{ marginTop: 12, padding: '10px 14px', background: '#2a0a0a', border: '1px solid #ff174444', borderRadius: 4, fontSize: 12, color: '#ff8a80' }}>{signinError}</div>
+        )}
+        <div style={{ marginTop: 24, fontSize: 11, color: '#3a5a7a' }}>Having trouble signing in? Ask your instructor for help.</div>
+      </div>
+    </div>
+  );
 
   // ── DASHBOARD ──
   if (view === 'dashboard') return (
@@ -463,6 +633,7 @@ function App() {
             <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 11, letterSpacing: '0.25em', color: '#00d4ff99', marginBottom: 4 }}>TECH CATCH UP COURSES</div>
             <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, fontWeight: 900, color: '#00d4ff' }}>DATA CENTER TECH</div>
             <div style={{ fontSize: 11, color: '#5a7a9a', marginTop: 2 }}>15-Minute Daily Lessons · 3-Week Curriculum</div>
+            <div style={{ fontSize: 11, color: '#3a5a7a', marginTop: 4 }}>Signed in as {studentDisplayName || studentEmail}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 11, color: '#5a7a9a' }}>SCORE</div>
@@ -587,7 +758,9 @@ function App() {
   }
 
   // ── LESSON COMPLETE ──
-  if (view === 'complete') return (
+  if (view === 'complete') {
+    const wasFirstCompletion = lastLessonSubmitStatus !== null;
+    return (
     <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0f1a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center', padding: 40, maxWidth: 480 }}>
         <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 52, color: '#00d4ff', marginBottom: 12 }}>✓</div>
@@ -595,11 +768,18 @@ function App() {
         <div style={{ fontSize: 13, color: '#8ab4d4', marginBottom: 4 }}>{currentLesson?.title}</div>
         <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 30, color: '#00ffea', margin: '20px 0' }}>+{currentLesson?.xp} XP</div>
         <div style={{ fontSize: 12, color: '#5a7a9a', marginBottom: 8 }}>Overall Score: {totalCorrect} / {TOTAL_QUESTIONS} correct</div>
-        <div style={{ fontSize: 12, color: '#5a7a9a', marginBottom: 32 }}>{completedCount} / {allLessons.length} lessons complete</div>
+        <div style={{ fontSize: 12, color: '#5a7a9a', marginBottom: 12 }}>{completedCount} / {allLessons.length} lessons complete</div>
+        {wasFirstCompletion && (
+          <div style={{ fontSize: 11, color: lastLessonSubmitStatus === 'fail' ? '#ff8a80' : '#3a5a7a', marginBottom: 24 }}>
+            {lastLessonSubmitStatus === 'fail'
+              ? '⚠ Progress could not be recorded automatically — tell your instructor your score for this lesson.'
+              : '✓ Progress recorded automatically'}
+          </div>
+        )}
         {completedCount === allLessons.length && (
           <div style={{ marginBottom: 20, padding: '12px', background: '#0a2a0a', border: '1px solid #00c85344', borderRadius: 4 }}>
-            <div style={{ fontSize: 12, color: '#69f0ae', marginBottom: 8 }}>🎓 All lessons complete! Submit your results for course credit.</div>
-            <button className="btn-primary" onClick={() => setView('submit')} style={{ padding: '8px 20px', fontSize: 12, borderRadius: 2, background: '#00c853', color: '#0a0f1a' }}>SUBMIT FOR CREDIT →</button>
+            <div style={{ fontSize: 12, color: '#69f0ae', marginBottom: 8 }}>🎓 All lessons complete! View your final certificate.</div>
+            <button className="btn-primary" onClick={() => setView('submit')} style={{ padding: '8px 20px', fontSize: 12, borderRadius: 2, background: '#00c853', color: '#0a0f1a' }}>VIEW CERTIFICATE →</button>
           </div>
         )}
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -611,13 +791,14 @@ function App() {
       </div>
     </div>
   );
+  }
 
-  // ── SUBMISSION FORM ──
+  // ── FINAL CERTIFICATE / SUMMARY SUBMISSION ──
   if (view === 'submit') return (
     <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0f1a', minHeight: '100vh', color: '#c8d6e5' }}>
       <div style={{ borderBottom: '1px solid #00d4ff22', padding: '14px 24px', background: '#060b14', display: 'flex', alignItems: 'center', gap: 16 }}>
         <button className="btn-ghost" onClick={() => setView('dashboard')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← BACK</button>
-        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, color: '#00d4ff' }}>SUBMIT COURSE RESULTS</div>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, color: '#00d4ff' }}>COURSE COMPLETE</div>
       </div>
 
       <div style={{ maxWidth: 560, margin: '40px auto', padding: '0 24px' }}>
@@ -645,23 +826,14 @@ function App() {
               </div>
             </div>
 
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ fontSize: 11, color: '#5a7a9a', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>YOUR FIRST NAME</label>
-              <input type="text" placeholder="First Name Only" value={studentName} onChange={e => setStudentName(e.target.value)} />
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ fontSize: 11, color: '#5a7a9a', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>YOUR STUDENT LOGIN ID</label>
-              <input type="text" placeholder="Student Login ID" value={studentEmail} onChange={e => setStudentEmail(e.target.value)} />
+            <div style={{ marginBottom: 20, padding: '10px 14px', background: '#0a1420', border: '1px solid #1a2a3a', borderRadius: 4, fontSize: 11, color: '#5a7a9a', lineHeight: 1.6 }}>
+              Signed in as <strong style={{ color: '#8ab4d4' }}>{studentDisplayName || studentEmail}</strong>. Your verified school account, score, and lesson completion record will be submitted for course credit and Arizona Department of Education reporting. No additional personal information is collected.
             </div>
 
             {formError && <div style={{ marginBottom: 16, padding: '10px 14px', background: '#2a0a0a', border: '1px solid #ff174444', borderRadius: 4, fontSize: 12, color: '#ff8a80' }}>{formError}</div>}
 
-            <div style={{ marginBottom: 20, padding: '10px 14px', background: '#0a1420', border: '1px solid #1a2a3a', borderRadius: 4, fontSize: 11, color: '#5a7a9a', lineHeight: 1.6 }}>
-              Your first name, student login ID, score, and lesson completion record will be submitted to your instructor for course credit and Arizona Department of Education reporting. No additional personal information is collected or stored.
-            </div>
-
-            <button className="btn-primary" onClick={submitToGoogleForm} style={{ padding: '12px', fontSize: 13, borderRadius: 2, width: '100%' }}>
-              SUBMIT RESULTS FOR COURSE CREDIT →
+            <button className="btn-primary" onClick={submitFinalSummary} style={{ padding: '12px', fontSize: 13, borderRadius: 2, width: '100%' }}>
+              SUBMIT FINAL RESULTS →
             </button>
           </>
         ) : (
@@ -670,14 +842,14 @@ function App() {
             <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, color: '#69f0ae', marginBottom: 12 }}>SUBMISSION COMPLETE</div>
             <div style={{ fontSize: 13, color: '#8ab4d4', marginBottom: 24, lineHeight: 1.7 }}>
               Your results have been submitted successfully.<br/>
-              <strong style={{ color: '#c8d6e5' }}>{studentName}</strong> · Login ID: {studentEmail}
+              <strong style={{ color: '#c8d6e5' }}>{studentDisplayName}</strong> · {studentEmail}
             </div>
             <div style={{ padding: '20px', background: '#060b14', border: '1px solid #69f0ae33', borderRadius: 4, marginBottom: 28 }}>
               <div style={{ fontSize: 11, color: '#5a7a9a', marginBottom: 12, letterSpacing: '0.1em' }}>COMPLETION CERTIFICATE</div>
               <div style={{ fontSize: 13, color: '#c8d6e5', lineHeight: 1.8 }}>
-                <div><span style={{ color: '#5a7a9a' }}>Student:</span> {studentName}</div>
-                <div><span style={{ color: '#5a7a9a' }}>Login ID:</span> {studentEmail}</div>
-                <div><span style={{ color: '#5a7a9a' }}>Course:</span> Data Center Technician Fundamentals</div>
+                <div><span style={{ color: '#5a7a9a' }}>Student:</span> {studentDisplayName}</div>
+                <div><span style={{ color: '#5a7a9a' }}>School Account:</span> {studentEmail}</div>
+                <div><span style={{ color: '#5a7a9a' }}>Course:</span> {COURSE_NAME}</div>
                 <div><span style={{ color: '#5a7a9a' }}>Score:</span> {totalCorrect} / {TOTAL_QUESTIONS} ({Math.round((totalCorrect / TOTAL_QUESTIONS) * 100)}%)</div>
                 <div><span style={{ color: '#5a7a9a' }}>Lessons:</span> {completedCount} of 15 complete</div>
                 <div><span style={{ color: '#5a7a9a' }}>Date:</span> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
@@ -695,6 +867,52 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+<!-- ============== LOCKDOWN MODULE: copy/select/devtools event blocking ============== -->
+<script id="lockdown-script">
+(function () {
+  'use strict';
+  function isFormField(el) {
+    if (!el || !el.tagName) return false;
+    const tag = el.tagName.toUpperCase();
+    return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
+  }
+  document.addEventListener('contextmenu', function (e) {
+    if (!isFormField(e.target)) e.preventDefault();
+  }, false);
+  ['copy', 'cut'].forEach(function (evtName) {
+    document.addEventListener(evtName, function (e) {
+      if (!isFormField(e.target)) {
+        e.preventDefault();
+        if (e.clipboardData) e.clipboardData.setData('text/plain', '');
+      }
+    }, false);
+  });
+  document.addEventListener('dragstart', function (e) {
+    if (!isFormField(e.target)) e.preventDefault();
+  }, false);
+  document.addEventListener('keydown', function (e) {
+    const k = e.key ? e.key.toLowerCase() : '';
+    const ctrlOrCmd = e.ctrlKey || e.metaKey;
+    if (isFormField(e.target)) {
+      if (e.key === 'F12' || (ctrlOrCmd && e.shiftKey && ['i','j','c'].includes(k)) || (ctrlOrCmd && k === 'u')) {
+        e.preventDefault();
+      }
+      return;
+    }
+    if (ctrlOrCmd && ['a','c','x','s','p'].includes(k)) e.preventDefault();
+    if (e.key === 'F12' || (ctrlOrCmd && e.shiftKey && ['i','j','c'].includes(k)) || (ctrlOrCmd && k === 'u')) {
+      e.preventDefault();
+    }
+  }, false);
+  const observer = new MutationObserver(function () {
+    document.querySelectorAll('input, textarea, [contenteditable="true"]').forEach(function (el) {
+      el.style.userSelect = 'text';
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
 </script>
 </body>
 </html>
