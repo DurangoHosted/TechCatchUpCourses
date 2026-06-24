@@ -2,6 +2,74 @@
 <html lang="en">
 <head>
 <!-- ============================================================
+  GOOGLE FORM SUBMISSION — DEBUGGING HISTORY (June 2026)
+  ------------------------------------------------------------
+  If per-lesson or final-summary submissions ever silently stop
+  reaching the tracking Sheet again, check these FOUR things in
+  this order before assuming the JavaScript is broken. Each of
+  these was a real, separate bug found while building this file —
+  fixing one revealed the next, so don't stop at the first fix
+  that seems plausible.
+
+  1. FORM RESPONSE URL MUST INCLUDE "/e/"
+     The public submission endpoint is:
+       https://docs.google.com/forms/d/e/{FORM_ID}/formResponse
+     NOT:
+       https://docs.google.com/forms/d/{FORM_ID}/formResponse
+     The "/e/" segment is required and is easy to miss because the
+     form's OWN EDITOR address bar does not show it. Always copy
+     the form ID from Send (top right in the editor) → the link
+     icon → the share URL, which includes "/e/". Never copy from
+     the edit-view address bar.
+
+  2. DO NOT MANUALLY SET A Content-Type HEADER ON THE fetch() CALL
+     Under mode:'no-cors' (required for this cross-origin POST),
+     the browser only allows a small safelist of headers through.
+     Manually setting Content-Type caused a 401 even with a
+     correct URL and correct entry IDs. Pass a URLSearchParams
+     object directly as the fetch body and let the browser set
+     the header itself — do not add a headers object at all.
+
+  3. CONTENT SECURITY POLICY frame-src MUST INCLUDE docs.google.com
+     This was only needed back when the OLD hidden-iframe +
+     form.submit() submission technique was in use (since replaced
+     by fetch() below). Documented here in case any future course
+     in this series still uses the older iframe technique — that
+     technique requires frame-src to allow docs.google.com or the
+     browser silently blocks the iframe with zero JS-visible error.
+
+  4. THE GOOGLE FORM ITSELF MUST BE SET TO "ANYONE WITH THE LINK"
+     NOT "Restrict to users in [domain]". This was the single
+     biggest time-sink while debugging this system. Our submission
+     method (fetch POST, and the old hidden-iframe technique before
+     it) sends a plain, unauthenticated request directly to Forms —
+     it does NOT and CANNOT carry the student's signed-in Google
+     session from the course page into that separate request, even
+     though the student really is signed in via OAuth on the course
+     page itself. If domain-restriction is on, Google rejects every
+     submission with a 401/403, with no error visible anywhere in
+     our own code, because the request never completes a real
+     network failure — Google's server is the one rejecting it.
+     IDENTITY VERIFICATION FOR THIS SYSTEM HAPPENS AT THE GOOGLE
+     SIGN-IN STEP ON THE COURSE PAGE, NOT AT THE FORM LEVEL. The
+     form's own domain restriction is redundant with that and
+     directly incompatible with how this submission method works.
+     Keep it OFF. If domain restriction is ever needed for a
+     compliance reason, the submission method itself would need to
+     change to an authenticated Google Apps Script Web App or the
+     Sheets API instead of a direct Forms POST — that is a larger
+     rebuild, not a setting tweak.
+
+  Diagnostic tip: a direct curl/terminal POST to the formResponse
+  URL is the cleanest way to isolate "is this a browser/CSP/page
+  problem" from "is this a Google Forms settings problem" — but
+  only if run from a network with unrestricted outbound access.
+  A sandboxed or otherwise network-restricted environment can
+  itself return a misleading 403 that looks identical to a Google
+  Forms rejection but has nothing to do with Google at all (look
+  for an "x-deny-reason" response header to tell the two apart).
+============================================================ -->
+<!-- ============================================================
   STANDARDS ALIGNMENT — NOTES FOR FUTURE MAINTAINERS
   ------------------------------------------------------------
   Compiled June 2026. Sourced from live azed.gov / csteachers.org
