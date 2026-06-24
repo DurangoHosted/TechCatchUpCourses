@@ -1,31 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'self';">
-<meta http-equiv="X-Frame-Options" content="ALLOWALL">
-<script>
-  // Intercept any attempt to navigate away from this page
-  window.addEventListener('click', function(e) {
-    var target = e.target.closest('a');
-    if (target && target.href && !target.href.startsWith('#') && !target.href.startsWith('javascript')) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-  }, true);
-  // Block window.open calls
-  window.open = function() { return null; };
-  // Block location changes
-  var _loc = window.location.href;
-  Object.defineProperty(window, 'location', {
-    get: function() { return { href: _loc, assign: function(){}, replace: function(){}, reload: function(){} }; },
-    set: function() {}
-  });
-</script>
+<!-- ============================================================
+  GOOGLE FORM SUBMISSION — DEBUGGING HISTORY (June 2026)
+  ------------------------------------------------------------
+  This course shares the SAME master tracking form as the Data
+  Center Career course (and any future course in this series).
+  The "Course Name" field (entry.1731057226) is what distinguishes
+  rows between courses in the one shared Sheet — set via the
+  COURSE_NAME constant below. Do not create a new form per course;
+  that was a one-time design decision made early in this project
+  specifically so ALL courses funnel into one auditable sheet for
+  Arizona Dept. of Education reporting.
 
+  If per-lesson or final-summary submissions ever silently stop
+  reaching the tracking Sheet, check these FOUR things in this
+  order before assuming the JavaScript is broken — each was a
+  real, separate bug found while building the Data Center course
+  on this exact same pattern:
+
+  1. FORM RESPONSE URL MUST INCLUDE "/e/"
+     https://docs.google.com/forms/d/e/{FORM_ID}/formResponse
+     NOT .../forms/d/{FORM_ID}/formResponse — the "/e/" segment
+     is required and does not appear in the form editor's own
+     address bar. Always copy the ID from Send → link icon.
+
+  2. DO NOT MANUALLY SET A Content-Type HEADER ON THE fetch() CALL
+     Under mode:'no-cors', manually setting Content-Type caused
+     a 401 even with a correct URL and entry IDs. Pass a
+     URLSearchParams object directly as the fetch body instead.
+
+  3. CONTENT SECURITY POLICY frame-src MUST INCLUDE docs.google.com
+     Only relevant if a hidden-iframe submission technique is ever
+     reintroduced (this file uses fetch() instead, which does not
+     need this — documented here only as a historical trap).
+
+  4. THE GOOGLE FORM ITSELF MUST BE SET TO "ANYONE WITH THE LINK"
+     NOT "Restrict to users in [domain]". Our submission method
+     sends a plain, unauthenticated POST — it cannot carry the
+     student's OAuth session from the course page into that
+     separate request. Identity verification for this whole system
+     happens at the Google Sign-In step on the course page itself,
+     NOT at the form level. Keep this setting OFF.
+============================================================ -->
+<!-- ============================================================
+  STANDARDS ALIGNMENT — NOTES FOR FUTURE MAINTAINERS
+  ------------------------------------------------------------
+  This course (Microsoft Teams — Admin & User Mini Course) is
+  vendor-specific software training content, not a match for AZ
+  CTE Technical Standards or CSTA K-12 standards in the way the
+  Data Center course partially is. If this course is ever
+  submitted for academic credit, a standards crosswalk has not
+  yet been built for it — flag this gap to administration rather
+  than assuming alignment. The closest conceptual fit would be
+  general workplace-technology-skills standards (e.g., ISTE
+  Standards for Students, or a state's general employability/
+  career-readiness standards), not a computing-specific framework.
+============================================================ -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Microsoft Teams — Admin & User Mini Course</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://accounts.google.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.googleusercontent.com; connect-src https://docs.google.com https://accounts.google.com; frame-src https://accounts.google.com https://docs.google.com; form-action https://docs.google.com; base-uri 'self';">
+<script>
+  window.addEventListener('click', function(e) {
+    var target = e.target.closest('a');
+    if (target && target.href && !target.href.startsWith('#') && !target.href.startsWith('javascript')) {
+      e.preventDefault(); e.stopPropagation(); return false;
+    }
+  }, true);
+  window.open = function() { return null; };
+</script>
+<!-- Google Identity Services (silent OAuth sign-in) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -44,17 +90,55 @@
   .btn-ghost:hover { border-color: #6264a744; color: #8a9ab4; }
   .lesson-card { transition: all 0.2s; cursor: pointer; }
   .lesson-card:hover { border-color: #6264a7 !important; background: #12152a !important; }
+  .quiz-option { transition: all 0.15s; cursor: pointer; text-align: left; width: 100%; }
+  .quiz-option:hover:not(.locked) { border-color: #6264a7 !important; background: #12152a !important; }
+
+  /* ── LOCKDOWN MODULE: disable text selection sitewide ── */
+  * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+  input, textarea, [contenteditable="true"] { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+  img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
+  ::selection { background: transparent; }
+
+  .gsi-signin-card { background: #0d0f1e; border: 1px solid #6264a722; border-radius: 6px; padding: 36px 32px; max-width: 420px; text-align: center; }
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState } = React;
+const { useState, useEffect } = React;
 
 const PURPLE = "#6264a7";
 const PURPLE_LT = "#7b83c6";
 const PURPLE_BG = "#1a1c35";
 const ACCENT = "#a9abdf";
+
+// ─────────────────────────────────────────
+// GOOGLE OAUTH CONFIGURATION
+// Reuses the same Client ID as the Data Center course — same
+// Workspace domain, both URLs registered as redirect URIs.
+// ─────────────────────────────────────────
+const GOOGLE_OAUTH_CLIENT_ID = "739086238293-h96tav9cuc2sh59gcnvg7m75po1ibne3.apps.googleusercontent.com";
+
+// ─────────────────────────────────────────
+// GOOGLE FORM CONFIGURATION — SAME shared Master Tracking Log
+// used by every course in this series. Do not create a new form;
+// "Course Name" below is what distinguishes this course's rows.
+// ─────────────────────────────────────────
+const GOOGLE_FORM_CONFIG = {
+  formId: "1FAIpQLSdvmpjiQ9k1FZCv0khGZBWoIF0kqWPvgnyylLQRgy4IDM0nMw",
+  fields: {
+    studentEmail: "entry.659729629",
+    studentDisplayName: "entry.642379464",
+    courseName: "entry.1731057226",
+    lessonNumber: "entry.1406985482",
+    lessonTitle: "entry.865807923",
+    lessonScore: "entry.1202968821",
+    cumulativeScore: "entry.552925036",
+    sessionTimestamp: "entry.1138914731"
+  }
+};
+
+const COURSE_NAME = "Microsoft Teams";
 
 const curriculum = [
   {
@@ -63,7 +147,7 @@ const curriculum = [
     icon: "⬡",
     lessons: [
       {
-        id: 1, title: "What Is Microsoft Teams?", duration: "15 min", xp: 100,
+        day: 1, title: "What Is Microsoft Teams?", duration: "15 min", xp: 100,
         tag: "USER",
         content: [
           { type: "intro", text: "Microsoft Teams is the hub for teamwork in Microsoft 365. It combines persistent chat, video meetings, file storage, and app integration into a single workspace. At Aligned Data Centers, Teams is how the organization communicates — between IT, operations, management, and facilities." },
@@ -95,13 +179,28 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "What is the difference between a Team and a Channel in Microsoft Teams?", a: "A Team is the overall group workspace (e.g., IT Support). A Channel is a topic-specific workspace within that team (e.g., #helpdesk, #server-alerts)." },
-          { q: "Where are files stored when shared in a Teams channel?", a: "Files shared in a channel are stored in the associated SharePoint document library. Files shared in private chat go to OneDrive." },
-          { q: "What is the Activity Feed used for?", a: "The Activity Feed is the notification center — it shows mentions, replies, channel activity, and other alerts in one place." }
+          { q: "What is the difference between a Team and a Channel in Microsoft Teams?", options: [
+            "A Team is the overall group workspace; a Channel is a topic-specific workspace within that team",
+            "A Team and a Channel are the same thing, just different names",
+            "A Channel can contain multiple Teams inside it",
+            "A Team is for video calls only; a Channel is for chat only"
+          ], correct: 0 },
+          { q: "Where are files stored when shared in a Teams channel?", options: [
+            "On the local computer's hard drive only",
+            "In the associated SharePoint document library",
+            "In a temporary folder that deletes after 24 hours",
+            "Directly inside the Teams app's internal database"
+          ], correct: 1 },
+          { q: "What is the Activity Feed used for?", options: [
+            "Scheduling future meetings",
+            "Storing archived files",
+            "The notification center — mentions, replies, and channel activity",
+            "Managing user licenses"
+          ], correct: 2 }
         ]
       },
       {
-        id: 2, title: "Navigating the Teams Interface", duration: "15 min", xp: 100,
+        day: 2, title: "Navigating the Teams Interface", duration: "15 min", xp: 100,
         tag: "USER",
         content: [
           { type: "intro", text: "The Teams interface is consistent across desktop, web, and mobile. Knowing the layout cold means you spend zero time hunting for features when someone is waiting on you." },
@@ -142,13 +241,28 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "Where do you find @ mention notifications and missed call alerts in Teams?", a: "In the Activity feed — accessible from the bell icon in the left rail." },
-          { q: "What keyboard shortcut mutes and unmutes your microphone during a Teams meeting?", a: "Ctrl + Shift + M" },
-          { q: "What tab within a channel contains the shared files for that channel?", a: "The Files tab, which connects to the channel's SharePoint document library." }
+          { q: "Where do you find @ mention notifications and missed call alerts in Teams?", options: [
+            "The Files tab",
+            "The Activity feed, accessible from the bell icon in the left rail",
+            "The Apps section",
+            "The Calendar tab"
+          ], correct: 1 },
+          { q: "What keyboard shortcut mutes and unmutes your microphone during a Teams meeting?", options: [
+            "Ctrl + Shift + O",
+            "Ctrl + N",
+            "Ctrl + Shift + M",
+            "Ctrl + E"
+          ], correct: 2 },
+          { q: "What tab within a channel contains the shared files for that channel?", options: [
+            "The Posts tab",
+            "The Wiki tab",
+            "The Activity tab",
+            "The Files tab, which connects to the channel's SharePoint library"
+          ], correct: 3 }
         ]
       },
       {
-        id: 3, title: "Chat, Messaging & Etiquette", duration: "15 min", xp: 100,
+        day: 3, title: "Chat, Messaging & Etiquette", duration: "15 min", xp: 100,
         tag: "USER",
         content: [
           { type: "intro", text: "Effective Teams communication is a skill. Poor messaging habits — wall-of-text posts, missing @mentions, unclear threads — create noise and slow teams down. This lesson covers professional-grade messaging at Aligned." },
@@ -191,9 +305,24 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "What is the difference between @team and @channel in a Teams mention?", a: "@team notifies everyone in the team. @channel notifies only members who have that channel active/visible. @channel is less disruptive for non-urgent posts." },
-          { q: "How should you reply to a message in a Teams channel to keep conversations organized?", a: "Click Reply under the original post to respond in-thread. Do not post a new message — it breaks the conversation flow." },
-          { q: "What formatting element should you use when pasting error messages, terminal output, or IP addresses into Teams?", a: "A code block — use the </> button in the rich text editor. It preserves formatting and makes technical content readable." }
+          { q: "What is the difference between @team and @channel in a Teams mention?", options: [
+            "They are exactly the same and notify the same people",
+            "@team notifies everyone in the team; @channel notifies only members who have that channel active/visible",
+            "@channel notifies more people than @team",
+            "@team only works in private chats"
+          ], correct: 1 },
+          { q: "How should you reply to a message in a Teams channel to keep conversations organized?", options: [
+            "Always post a brand new message instead of replying",
+            "Send a private chat to the original poster",
+            "Click Reply under the original post to respond in-thread",
+            "Edit the original post directly"
+          ], correct: 2 },
+          { q: "What formatting element should you use when pasting error messages, terminal output, or IP addresses into Teams?", options: [
+            "A code block, using the </> button in the rich text editor",
+            "Bold text only",
+            "A table",
+            "An emoji reaction"
+          ], correct: 0 }
         ]
       }
     ]
@@ -204,7 +333,7 @@ const curriculum = [
     icon: "◈",
     lessons: [
       {
-        id: 4, title: "Scheduling & Running Meetings", duration: "15 min", xp: 100,
+        day: 4, title: "Scheduling & Running Meetings", duration: "15 min", xp: 100,
         tag: "USER",
         content: [
           { type: "intro", text: "Teams meetings are the backbone of real-time collaboration at Aligned. Knowing how to schedule, run, and follow up on meetings efficiently is a core professional skill — especially in IT where meetings often involve incident reviews and change advisory board sessions." },
@@ -243,13 +372,28 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "Where should you set meeting options like lobby bypass and presenter permissions?", a: "In the Calendar event → Edit → Meeting Options link. Set these before the meeting starts, especially for formal or large meetings." },
-          { q: "What should you always include when scheduling a Teams meeting?", a: "An agenda in the Details field — even a brief one. It sets expectations and helps attendees prepare." },
-          { q: "What keyboard shortcut toggles your camera during a Teams meeting?", a: "Ctrl + Shift + O" }
+          { q: "Where should you set meeting options like lobby bypass and presenter permissions?", options: [
+            "In the meeting chat panel during the call",
+            "In the Calendar event → Edit → Meeting Options link",
+            "In the Files tab",
+            "These can only be set by the Teams admin"
+          ], correct: 1 },
+          { q: "What should you always include when scheduling a Teams meeting?", options: [
+            "A recorded video introduction",
+            "An agenda in the Details field, even briefly",
+            "A breakout room assignment",
+            "A poll for attendees"
+          ], correct: 1 },
+          { q: "What keyboard shortcut toggles your camera during a Teams meeting?", options: [
+            "Ctrl + Shift + M",
+            "Ctrl + N",
+            "Ctrl + Shift + O",
+            "Ctrl + E"
+          ], correct: 2 }
         ]
       },
       {
-        id: 5, title: "Calls, Voicemail & Devices", duration: "15 min", xp: 100,
+        day: 5, title: "Calls, Voicemail & Devices", duration: "15 min", xp: 100,
         tag: "USER",
         content: [
           { type: "intro", text: "If Aligned has PSTN calling enabled, Teams becomes your desk phone. Even without it, you can make Teams-to-Teams calls to any colleague. Understanding calling features keeps you reachable and professional." },
@@ -286,9 +430,24 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "What is the difference between a Teams VoIP call and a PSTN call?", a: "A Teams VoIP call is a free internet-based call between Teams users within the org. A PSTN call (if enabled by admin) lets you call external phone numbers using a dial pad, like a traditional desk phone." },
-          { q: "A user reports they can't hear other people in a Teams call. What is your first troubleshooting step?", a: "Go to Teams Settings → Devices and verify the correct audio output (speaker) device is selected. Wrong device selection is the most common cause." },
-          { q: "What setting should you enable for staff working in noisy environments like the DC floor?", a: "Settings → Devices → Noise suppression → High. This filters out background noise including fan hum and equipment sounds." }
+          { q: "What is the difference between a Teams VoIP call and a PSTN call?", options: [
+            "VoIP calls cost money; PSTN calls are free",
+            "A VoIP call is free and internet-based between Teams users; a PSTN call lets you dial external phone numbers",
+            "PSTN calls only work on mobile devices",
+            "There is no difference — they are the same feature"
+          ], correct: 1 },
+          { q: "A user reports they can't hear other people in a Teams call. What is your first troubleshooting step?", options: [
+            "Reinstall the Teams application entirely",
+            "Check the user's M365 license assignment",
+            "Go to Settings → Devices and verify the correct audio output device is selected",
+            "Restart the user's computer"
+          ], correct: 2 },
+          { q: "What setting should you enable for staff working in noisy environments like the DC floor?", options: [
+            "Background blur",
+            "Settings → Devices → Noise suppression → High",
+            "Call forwarding",
+            "Simultaneous ring"
+          ], correct: 1 }
         ]
       }
     ]
@@ -299,7 +458,7 @@ const curriculum = [
     icon: "◇",
     lessons: [
       {
-        id: 6, title: "Files, SharePoint & OneDrive", duration: "15 min", xp: 100,
+        day: 6, title: "Files, SharePoint & OneDrive", duration: "15 min", xp: 100,
         tag: "USER",
         content: [
           { type: "intro", text: "Every file shared in Teams lives somewhere in Microsoft 365. Knowing where files are stored — and how to manage them — prevents lost documents, permission issues, and version conflicts." },
@@ -335,13 +494,28 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "A user shares a file in a private Teams chat. Where is that file actually stored?", a: "In the sender's OneDrive. Only the chat participants can access it." },
-          { q: "Where should team IT documentation like runbooks and SOPs be stored in Teams?", a: "In the IT Team's SharePoint (accessible via the Files tab of the IT team channel), not in personal OneDrive." },
-          { q: "What does a red X on the OneDrive sync icon in the system tray indicate?", a: "A sync error — the file is not syncing to the cloud. Common causes include illegal characters in file names, storage quota exceeded, or connectivity issues." }
+          { q: "A user shares a file in a private Teams chat. Where is that file actually stored?", options: [
+            "In the sender's OneDrive",
+            "In the channel's SharePoint library",
+            "On Microsoft's public servers",
+            "It is not stored anywhere; it only exists in the chat window"
+          ], correct: 0 },
+          { q: "Where should team IT documentation like runbooks and SOPs be stored in Teams?", options: [
+            "In each individual employee's personal OneDrive",
+            "Attached directly to chat messages for easy access",
+            "In the IT Team's SharePoint, accessible via the Files tab",
+            "Printed and kept in a binder, not stored digitally"
+          ], correct: 2 },
+          { q: "What does a red X on the OneDrive sync icon in the system tray indicate?", options: [
+            "The file has been permanently deleted",
+            "A sync error — common causes include illegal characters in file names or storage quota exceeded",
+            "The file is currently open by another user",
+            "OneDrive is up to date and fully synced"
+          ], correct: 1 }
         ]
       },
       {
-        id: 7, title: "Apps, Tabs & Integrations", duration: "15 min", xp: 100,
+        day: 7, title: "Apps, Tabs & Integrations", duration: "15 min", xp: 100,
         tag: "USER",
         content: [
           { type: "intro", text: "Teams is an app platform, not just a messaging tool. Adding the right apps and tabs to your channels eliminates context switching and brings your work tools together in one place." },
@@ -378,9 +552,24 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "What is an Incoming Webhook in Teams and how is it useful for IT operations?", a: "An Incoming Webhook is a URL generated for a Teams channel that external tools (like Nagios, Zabbix, or PagerDuty) can POST alerts to. It automatically delivers monitoring alerts into a channel without manual action." },
-          { q: "Which Teams app would you use to manage on-call rotation schedules for IT staff?", a: "Microsoft Shifts — it handles schedule management including on-call rotations and can be pinned to an IT team channel." },
-          { q: "What controls which apps are available to install in a company's Teams environment?", a: "The Teams admin — they configure app permission policies that control which apps users can install or request." }
+          { q: "What is an Incoming Webhook in Teams and how is it useful for IT operations?", options: [
+            "A bot that automatically replies to common chat messages",
+            "A URL that external monitoring tools can POST alerts to, delivering them automatically into a channel",
+            "A setting that blocks unauthorized app installs",
+            "A type of meeting recording"
+          ], correct: 1 },
+          { q: "Which Teams app would you use to manage on-call rotation schedules for IT staff?", options: [
+            "Power Automate",
+            "OneNote",
+            "Microsoft Shifts",
+            "Approvals"
+          ], correct: 2 },
+          { q: "What controls which apps are available to install in a company's Teams environment?", options: [
+            "Each individual user's personal preference settings",
+            "The Teams admin, through app permission policies",
+            "Microsoft automatically approves all apps for every organization",
+            "The age of the Teams account"
+          ], correct: 1 }
         ]
       }
     ]
@@ -391,7 +580,7 @@ const curriculum = [
     icon: "⬟",
     lessons: [
       {
-        id: 8, title: "Teams Admin Center Overview", duration: "15 min", xp: 100,
+        day: 8, title: "Teams Admin Center Overview", duration: "15 min", xp: 100,
         tag: "ADMIN",
         content: [
           { type: "intro", text: "The Microsoft Teams Admin Center (TAC) is where you manage every organizational setting for Teams. As an IT support tech at Aligned, you may have read access or limited admin rights. Understanding the TAC means you can triage issues, answer user questions accurately, and escalate with the right information." },
@@ -431,13 +620,28 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "What URL do you navigate to for the Microsoft Teams Admin Center?", a: "admin.teams.microsoft.com" },
-          { q: "A user reports they can't use a Teams feature that others can. Where in the TAC do you check what policies are assigned to them?", a: "Users → select the user → Policies tab. This shows every policy currently assigned to that user." },
-          { q: "What is the Global policy in Teams administration?", a: "The org-wide default policy that applies to all users who have not been assigned a custom policy. Changes to it affect everyone without a specific policy assignment." }
+          { q: "What URL do you navigate to for the Microsoft Teams Admin Center?", options: [
+            "teams.microsoft.com",
+            "admin.teams.microsoft.com",
+            "portal.office.com/teams",
+            "admin.microsoft365.com"
+          ], correct: 1 },
+          { q: "A user reports they can't use a Teams feature that others can. Where in the TAC do you check what policies are assigned to them?", options: [
+            "Org-Wide Settings",
+            "Analytics & Reports",
+            "Users → select the user → Policies tab",
+            "Devices"
+          ], correct: 2 },
+          { q: "What is the Global policy in Teams administration?", options: [
+            "A policy that only applies to administrators",
+            "The org-wide default policy applying to all users not assigned a custom policy",
+            "A policy that cannot be changed under any circumstances",
+            "A backup copy of all other policies"
+          ], correct: 1 }
         ]
       },
       {
-        id: 9, title: "Managing Users, Teams & Licensing", duration: "15 min", xp: 100,
+        day: 9, title: "Managing Users, Teams & Licensing", duration: "15 min", xp: 100,
         tag: "ADMIN",
         content: [
           { type: "intro", text: "User and license management is where IT support meets Teams administration. When someone joins Aligned, changes roles, or leaves — you're involved. Getting this right means users are productive from day one and former employees lose access immediately." },
@@ -476,13 +680,28 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "A new employee was just set up in Active Directory but can't log into Teams. What is the first thing to check?", a: "Verify a Microsoft 365 license with Teams is assigned in the M365 Admin Center (Users → Active Users → Licenses). No license = no Teams access." },
-          { q: "What is the difference between archiving and deleting a Team?", a: "Archiving preserves all history and content but prevents new activity — the Team becomes read-only. Deleting permanently removes the Team and its content (recoverable for a limited time from the admin center)." },
-          { q: "When offboarding an employee, what is the fastest way to immediately revoke their Teams access?", a: "Disable their account in Azure AD / Entra ID. This immediately revokes access to Teams and all M365 services." }
+          { q: "A new employee was just set up in Active Directory but can't log into Teams. What is the first thing to check?", options: [
+            "Whether their computer has enough RAM",
+            "Verify a Microsoft 365 license with Teams is assigned in the M365 Admin Center",
+            "Whether they are using the correct keyboard shortcuts",
+            "The weather conditions affecting internet service"
+          ], correct: 1 },
+          { q: "What is the difference between archiving and deleting a Team?", options: [
+            "Archiving and deleting do exactly the same thing",
+            "Deleting preserves history while archiving removes it",
+            "Archiving preserves history but makes the Team read-only; deleting permanently removes it",
+            "Archiving only applies to private Teams"
+          ], correct: 2 },
+          { q: "When offboarding an employee, what is the fastest way to immediately revoke their Teams access?", options: [
+            "Wait for their license to expire naturally",
+            "Disable their account in Azure AD / Entra ID",
+            "Ask them to delete the Teams app from their device",
+            "Change the Global policy"
+          ], correct: 1 }
         ]
       },
       {
-        id: 10, title: "Security, Compliance & Guest Access", duration: "15 min", xp: 100,
+        day: 10, title: "Security, Compliance & Guest Access", duration: "15 min", xp: 100,
         tag: "ADMIN",
         content: [
           { type: "intro", text: "Data centers handle sensitive infrastructure — network diagrams, access credentials, customer data, and operational runbooks. Teams security and compliance settings directly protect that information. This is not optional configuration — it is a professional obligation." },
@@ -529,13 +748,28 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "What is the difference between External Access (Federation) and Guest Access in Teams?", a: "External Access allows users at other Microsoft 365 orgs to chat/call your users, but they cannot join your Teams or access files. Guest Access gives invited external users full participation in a specific Team including channels and files." },
-          { q: "Where are Teams Data Loss Prevention (DLP) policies configured?", a: "In Microsoft Purview Compliance Center — not in the Teams Admin Center. DLP is a compliance platform that scans Teams messages and files for sensitive data." },
-          { q: "A user says they can't access Teams from their personal laptop after it was recently added to their account. What is the likely cause?", a: "A Conditional Access policy requiring a compliant or hybrid Azure AD-joined device. Personal devices often fail compliance checks. The user needs to use a managed corporate device or enroll the device in Intune." }
+          { q: "What is the difference between External Access (Federation) and Guest Access in Teams?", options: [
+            "External Access allows chat/call with other orgs but no Team access; Guest Access gives full participation in a specific Team",
+            "They are identical features with different names",
+            "Guest Access is only for internal employees",
+            "External Access requires a paid add-on license; Guest Access is always free"
+          ], correct: 0 },
+          { q: "Where are Teams Data Loss Prevention (DLP) policies configured?", options: [
+            "Directly inside the Teams app settings",
+            "In Microsoft Purview Compliance Center",
+            "In Azure AD Conditional Access",
+            "In the user's personal OneDrive settings"
+          ], correct: 1 },
+          { q: "A user says they can't access Teams from their personal laptop after it was recently added to their account. What is the likely cause?", options: [
+            "A Conditional Access policy requiring a compliant or managed device",
+            "The user's M365 license expired",
+            "The Teams app needs to be reinstalled",
+            "Their personal laptop has a virus"
+          ], correct: 0 }
         ]
       },
       {
-        id: 11, title: "Troubleshooting Teams Issues", duration: "15 min", xp: 100,
+        day: 11, title: "Troubleshooting Teams Issues", duration: "15 min", xp: 100,
         tag: "ADMIN",
         content: [
           { type: "intro", text: "Teams issues are among the most common tickets IT support fields. This lesson gives you a structured triage playbook so you resolve them fast and escalate with the right information when needed." },
@@ -575,13 +809,28 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "A user reports Teams is running slowly and freezing. What is your first resolution step?", a: "Clear the Teams cache: quit Teams fully, navigate to %appdata%\\Microsoft\\Teams, delete the contents of Cache, blob_storage, databases, and other subfolders, then restart Teams." },
-          { q: "Where do you check if a Microsoft Teams outage is causing widespread issues?", a: "Microsoft 365 Admin Center → Health → Service Health → Teams. This shows active incidents and advisories." },
-          { q: "How do you collect Teams desktop logs to include when escalating a ticket to Microsoft?", a: "Press Ctrl + Alt + Shift + 1 in the Teams app, or go to Help → Collect support files. Logs are saved to the Downloads folder." }
+          { q: "A user reports Teams is running slowly and freezing. What is your first resolution step?", options: [
+            "Immediately escalate to Microsoft support",
+            "Clear the Teams cache by deleting the contents of specific subfolders, then restart Teams",
+            "Delete the user's entire Teams folder, including the app itself",
+            "Reassign the user's license"
+          ], correct: 1 },
+          { q: "Where do you check if a Microsoft Teams outage is causing widespread issues?", options: [
+            "The user's local Event Viewer",
+            "Microsoft 365 Admin Center → Health → Service Health → Teams",
+            "The Teams app's About screen",
+            "Azure AD Conditional Access logs"
+          ], correct: 1 },
+          { q: "How do you collect Teams desktop logs to include when escalating a ticket to Microsoft?", options: [
+            "Take a screenshot of the error message only",
+            "Press Ctrl + Alt + Shift + 1 in the Teams app, or use Help → Collect support files",
+            "Email Microsoft directly with a verbal description",
+            "Logs cannot be collected by end users, only by Microsoft"
+          ], correct: 1 }
         ]
       },
       {
-        id: 12, title: "Teams Best Practices & Governance", duration: "15 min", xp: 100,
+        day: 12, title: "Teams Best Practices & Governance", duration: "15 min", xp: 100,
         tag: "ADMIN",
         content: [
           { type: "intro", text: "Teams sprawl is real. Organizations that don't govern Teams creation end up with hundreds of abandoned teams, duplicate channels, and no one knowing where to find anything. As IT staff at Aligned, you play a role in maintaining a clean, well-governed Teams environment." },
@@ -628,9 +877,24 @@ const curriculum = [
           ]}
         ],
         quiz: [
-          { q: "Why should every Team have at least two owners?", a: "If the only owner leaves the organization or loses access, the Team becomes orphaned — no one can manage membership, settings, or channels. Two owners prevents this single point of failure." },
-          { q: "What happens to a Team when its expiration policy triggers and the owner doesn't renew it?", a: "The Team is soft-deleted — it's recoverable for 30 days before permanent deletion. This is why expiration policies include owner notifications before expiry." },
-          { q: "What is the difference between a Private channel and a Shared channel in Teams?", a: "A Private channel is only visible to a subset of members within the same Team. A Shared channel allows collaboration with members from other Teams or external orgs without adding them as full team members." }
+          { q: "Why should every Team have at least two owners?", options: [
+            "It is required by Microsoft licensing terms",
+            "If the only owner leaves, the Team becomes orphaned with no one able to manage it",
+            "Two owners can create more channels than one",
+            "It doubles the storage quota for the Team"
+          ], correct: 1 },
+          { q: "What happens to a Team when its expiration policy triggers and the owner doesn't renew it?", options: [
+            "It is immediately and permanently deleted with no recovery option",
+            "Nothing happens; expiration policies are only a notification",
+            "It is soft-deleted and recoverable for 30 days before permanent deletion",
+            "It automatically converts to a Private channel"
+          ], correct: 2 },
+          { q: "What is the difference between a Private channel and a Shared channel in Teams?", options: [
+            "A Private channel is visible to a subset of Team members; a Shared channel allows collaboration with other Teams or orgs without adding them as members",
+            "Private channels cannot have files; Shared channels can",
+            "Shared channels are only for external guests",
+            "There is no functional difference"
+          ], correct: 0 }
         ]
       }
     ]
@@ -638,7 +902,7 @@ const curriculum = [
 ];
 
 const allLessons = curriculum.flatMap(m => m.lessons);
-
+const TOTAL_QUESTIONS = allLessons.reduce((sum, l) => sum + l.quiz.length, 0);
 function renderContent(blocks) {
   return blocks.map((block, i) => {
     if (block.type === 'intro') return (
@@ -693,44 +957,205 @@ function renderContent(blocks) {
 
 function App() {
   const [currentLesson, setCurrentLesson] = useState(null);
-  const [completed, setCompleted] = useState([]);
+  const [completedLessons, setCompletedLessons] = useState({});
   const [quizIndex, setQuizIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [answered, setAnswered] = useState(false);
   const [totalXP, setTotalXP] = useState(0);
-  const [view, setView] = useState('dashboard');
+  const [totalCorrect, setTotalCorrect] = useState(0);
+  const [view, setView] = useState('signin');
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
+  const [studentDisplayName, setStudentDisplayName] = useState('');
+  const [signinError, setSigninError] = useState('');
+  const [lastLessonSubmitStatus, setLastLessonSubmitStatus] = useState(null); // 'ok' | 'fail' | null
+  const [lessonCorrectCount, setLessonCorrectCount] = useState(0);
 
-  const openLesson = (lesson) => { setCurrentLesson(lesson); setQuizIndex(0); setShowAnswer(false); setView('lesson'); };
-  const startQuiz = () => { setQuizIndex(0); setShowAnswer(false); setView('quiz'); };
-  const nextQ = () => {
-    if (quizIndex < currentLesson.quiz.length - 1) { setQuizIndex(q => q + 1); setShowAnswer(false); }
-    else {
-      if (!completed.includes(currentLesson.id)) { setCompleted(p => [...p, currentLesson.id]); setTotalXP(x => x + currentLesson.xp); }
+  const completedCount = Object.keys(completedLessons).length;
+  const progress = (completedCount / allLessons.length) * 100;
+  const allDone = completedCount === allLessons.length;
+
+  // ── GOOGLE SIGN-IN (silent, picks up existing Chromebook session) ──
+  useEffect(() => {
+    function decodeJwt(token) {
+      try {
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(decodeURIComponent(atob(base64).split('').map(c =>
+          '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join('')));
+      } catch (err) { return null; }
+    }
+
+    function handleCredentialResponse(response) {
+      const payload = decodeJwt(response.credential);
+      if (payload && payload.email) {
+        setStudentEmail(payload.email);
+        setStudentDisplayName(payload.name || payload.email);
+        setSigninError('');
+        setView('dashboard');
+      } else {
+        setSigninError('We could not verify your Google account. Please try again or ask your instructor for help.');
+      }
+    }
+
+    function initGsi() {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_OAUTH_CLIENT_ID,
+          callback: handleCredentialResponse,
+          auto_select: true
+        });
+        const btnContainer = document.getElementById('gsiButtonContainer');
+        if (btnContainer) {
+          window.google.accounts.id.renderButton(btnContainer, {
+            theme: 'filled_black', size: 'large', text: 'signin_with', shape: 'pill', width: 280
+          });
+        }
+        window.google.accounts.id.prompt();
+      } else {
+        setTimeout(initGsi, 300);
+      }
+    }
+    if (view === 'signin') initGsi();
+  }, [view]);
+
+  const openLesson = (lesson) => {
+    setCurrentLesson(lesson);
+    setQuizIndex(0);
+    setSelectedOption(null);
+    setAnswered(false);
+    setLessonCorrectCount(0);
+    setView('lesson');
+  };
+
+  const startQuiz = () => {
+    setQuizIndex(0);
+    setSelectedOption(null);
+    setAnswered(false);
+    setLessonCorrectCount(0);
+    setView('quiz');
+  };
+
+  const handleOptionSelect = (idx) => {
+    if (answered) return;
+    setSelectedOption(idx);
+    setAnswered(true);
+    const correct = idx === currentLesson.quiz[quizIndex].correct;
+    if (correct) {
+      setTotalCorrect(c => c + 1);
+      setLessonCorrectCount(c => c + 1);
+    }
+  };
+
+  // Posts one row to the shared master Google Form using a direct fetch() POST.
+  // See header comment block for the full debugging history behind this exact
+  // implementation — do not modify without reading it first.
+  const postToGoogleForm = async (fieldValues) => {
+    const cfg = GOOGLE_FORM_CONFIG;
+    const formUrl = `https://docs.google.com/forms/d/e/${cfg.formId}/formResponse`;
+    const params = new URLSearchParams(fieldValues);
+
+    await fetch(formUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: params
+    });
+  };
+
+  const submitLessonResult = async (lesson, lessonCorrectCount, cumulativeCorrect) => {
+    try {
+      await postToGoogleForm({
+        [GOOGLE_FORM_CONFIG.fields.studentEmail]: studentEmail,
+        [GOOGLE_FORM_CONFIG.fields.studentDisplayName]: studentDisplayName,
+        [GOOGLE_FORM_CONFIG.fields.courseName]: COURSE_NAME,
+        [GOOGLE_FORM_CONFIG.fields.lessonNumber]: String(lesson.day),
+        [GOOGLE_FORM_CONFIG.fields.lessonTitle]: lesson.title,
+        [GOOGLE_FORM_CONFIG.fields.lessonScore]: `${lessonCorrectCount}/${lesson.quiz.length}`,
+        [GOOGLE_FORM_CONFIG.fields.cumulativeScore]: `${cumulativeCorrect}/${TOTAL_QUESTIONS}`,
+        [GOOGLE_FORM_CONFIG.fields.sessionTimestamp]: new Date().toLocaleString('en-US')
+      });
+      setLastLessonSubmitStatus('ok');
+    } catch (err) {
+      console.error('Lesson submission failed:', err);
+      setLastLessonSubmitStatus('fail');
+    }
+  };
+
+  const submitFinalSummary = async () => {
+    try {
+      await postToGoogleForm({
+        [GOOGLE_FORM_CONFIG.fields.studentEmail]: studentEmail,
+        [GOOGLE_FORM_CONFIG.fields.studentDisplayName]: studentDisplayName,
+        [GOOGLE_FORM_CONFIG.fields.courseName]: COURSE_NAME,
+        [GOOGLE_FORM_CONFIG.fields.lessonNumber]: "FINAL",
+        [GOOGLE_FORM_CONFIG.fields.lessonTitle]: "Course Complete — Final Summary",
+        [GOOGLE_FORM_CONFIG.fields.lessonScore]: `${totalCorrect}/${TOTAL_QUESTIONS}`,
+        [GOOGLE_FORM_CONFIG.fields.cumulativeScore]: `${totalCorrect}/${TOTAL_QUESTIONS}`,
+        [GOOGLE_FORM_CONFIG.fields.sessionTimestamp]: new Date().toLocaleString('en-US')
+      });
+      setFormSubmitted(true);
+    } catch (err) {
+      setFormError('Submission failed. Please tell your instructor your name and score.');
+    }
+  };
+
+  const nextQuestion = () => {
+    if (quizIndex < currentLesson.quiz.length - 1) {
+      setQuizIndex(q => q + 1);
+      setSelectedOption(null);
+      setAnswered(false);
+    } else {
+      const alreadyCompleted = !!completedLessons[currentLesson.day];
+      if (!alreadyCompleted) {
+        setCompletedLessons(p => ({ ...p, [currentLesson.day]: true }));
+        setTotalXP(x => x + currentLesson.xp);
+        submitLessonResult(currentLesson, lessonCorrectCount, totalCorrect);
+      } else {
+        setLastLessonSubmitStatus(null);
+      }
       setView('complete');
     }
   };
 
-  const progress = (completed.length / allLessons.length) * 100;
+  // ── SIGN IN ──
+  if (view === 'signin') return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0c14', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div className="gsi-signin-card">
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 11, letterSpacing: '0.25em', color: '#6264a799', marginBottom: 6 }}>ALIGNED DATA CENTERS</div>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, fontWeight: 900, color: ACCENT, marginBottom: 18 }}>MICROSOFT TEAMS</div>
+        <div style={{ fontSize: 12, color: '#8a9ab4', marginBottom: 24, lineHeight: 1.7 }}>
+          Sign in with your school Google account to begin.<br/>If you're already signed in on this Chromebook, this should happen automatically.
+        </div>
+        <div id="gsiButtonContainer" style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}></div>
+        {signinError && (
+          <div style={{ marginTop: 12, padding: '10px 14px', background: '#2a0a0a', border: '1px solid #ff174444', borderRadius: 4, fontSize: 12, color: '#ff8a80' }}>{signinError}</div>
+        )}
+        <div style={{ marginTop: 24, fontSize: 11, color: '#3a4a6a' }}>Having trouble signing in? Ask your instructor for help.</div>
+      </div>
+    </div>
+  );
 
+  // ── DASHBOARD ──
   if (view === 'dashboard') return (
     <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0c14', minHeight: '100vh', color: '#c8d6e5' }}>
-      {/* Header */}
       <div style={{ background: '#0d0f1e', borderBottom: '1px solid #6264a722', padding: '20px 24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
           <div>
             <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, letterSpacing: '0.3em', color: '#6264a799', marginBottom: 4 }}>ALIGNED DATA CENTERS</div>
-            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 22, fontWeight: 900, color: '#a9abdf', letterSpacing: '0.04em' }}>MICROSOFT TEAMS</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 22, fontWeight: 900, color: ACCENT, letterSpacing: '0.04em' }}>MICROSOFT TEAMS</div>
             <div style={{ fontSize: 11, color: '#3a4a6a', marginTop: 3 }}>Admin & User Mini Course · 12 Lessons · 15 Min Each</div>
+            <div style={{ fontSize: 11, color: '#3a4a6a', marginTop: 4 }}>Signed in as {studentDisplayName || studentEmail}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 10, color: '#3a4a6a', letterSpacing: '0.1em' }}>TOTAL XP</div>
-            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 30, fontWeight: 900, color: '#6264a7' }}>{totalXP}</div>
-            <div style={{ fontSize: 11, color: '#3a4a6a' }}>{completed.length} / {allLessons.length} complete</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 30, fontWeight: 900, color: PURPLE }}>{totalXP}</div>
+            <div style={{ fontSize: 11, color: '#3a4a6a' }}>{completedCount} / {allLessons.length} complete</div>
           </div>
         </div>
         <div style={{ marginTop: 14, height: 3, background: '#1e2235', borderRadius: 2, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${PURPLE}, ${ACCENT})`, transition: 'width 0.5s ease' }} />
         </div>
-        {/* Legend */}
         <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
           <span style={{ fontSize: 10, color: '#5a6a8a' }}>
             <span style={{ background: PURPLE_BG, color: ACCENT, padding: '2px 6px', borderRadius: 2, marginRight: 6, border: `1px solid ${PURPLE}44` }}>USER</span>
@@ -754,14 +1179,14 @@ function App() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
               {mod.lessons.map(lesson => {
-                const done = completed.includes(lesson.id);
+                const done = !!completedLessons[lesson.day];
                 const isAdmin = lesson.tag === 'ADMIN';
                 return (
-                  <div key={lesson.id} className="lesson-card" onClick={() => openLesson(lesson)}
+                  <div key={lesson.day} className="lesson-card" onClick={() => openLesson(lesson)}
                     style={{ border: `1px solid ${done ? '#6264a744' : '#1e2235'}`, borderRadius: 4, padding: '14px 16px', background: done ? '#12152a' : '#0d0f1e', position: 'relative', overflow: 'hidden' }}>
                     {done && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${PURPLE}, ${ACCENT})` }} />}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, color: done ? PURPLE : '#2a3a5a', fontWeight: 700 }}>LESSON {lesson.id}</span>
+                      <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, color: done ? PURPLE : '#2a3a5a', fontWeight: 700 }}>LESSON {lesson.day}</span>
                       <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 2,
                         background: isAdmin ? '#1a2a1a' : PURPLE_BG,
                         color: isAdmin ? '#6abf69' : ACCENT,
@@ -781,20 +1206,28 @@ function App() {
           </div>
         ))}
 
-        <div style={{ border: '1px solid #6264a722', borderRadius: 4, padding: '14px 16px', background: '#0d0f1e', marginTop: 8 }}>
+        <div style={{ border: '1px solid #6264a722', borderRadius: 4, padding: '14px 16px', background: '#0d0f1e', marginTop: 8, marginBottom: 24 }}>
           <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em', marginBottom: 6 }}>💡 FOR IT SUPPORT STAFF</div>
           <div style={{ fontSize: 12, color: '#3a4a6a', lineHeight: 1.6 }}>Complete the USER lessons first — they teach you what your end users experience, which makes you better at supporting them. Then tackle the ADMIN lessons to build administrative capability. Both tracks are relevant to your hybrid role at Aligned.</div>
         </div>
+
+        {allDone && (
+          <div style={{ marginBottom: 24, padding: '14px 16px', background: '#0a2a1a', border: '1px solid #6abf6944', borderRadius: 4 }}>
+            <div style={{ fontSize: 12, color: '#6abf69', marginBottom: 8 }}>🎓 All lessons complete! View your final certificate.</div>
+            <button className="btn-primary" onClick={() => setView('submit')} style={{ padding: '8px 20px', fontSize: 12, borderRadius: 2 }}>VIEW CERTIFICATE →</button>
+          </div>
+        )}
       </div>
     </div>
   );
 
+  // ── LESSON ──
   if (view === 'lesson' && currentLesson) return (
     <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0c14', minHeight: '100vh', color: '#c8d6e5' }}>
       <div style={{ background: '#0d0f1e', borderBottom: '1px solid #6264a722', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
         <button className="btn-ghost" onClick={() => setView('dashboard')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← BACK</button>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em' }}>LESSON {currentLesson.id} · {currentLesson.tag} · {currentLesson.duration}</div>
+          <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em' }}>LESSON {currentLesson.day} · {currentLesson.tag} · {currentLesson.duration}</div>
           <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, color: ACCENT, marginTop: 2 }}>{currentLesson.title}</div>
         </div>
         <button className="btn-primary" onClick={startQuiz} style={{ padding: '8px 18px', fontSize: 12, borderRadius: 2 }}>START QUIZ →</button>
@@ -808,6 +1241,7 @@ function App() {
     </div>
   );
 
+  // ── QUIZ (scored 4-option multiple choice) ──
   if (view === 'quiz' && currentLesson) {
     const q = currentLesson.quiz[quizIndex];
     return (
@@ -815,47 +1249,152 @@ function App() {
         <div style={{ background: '#0d0f1e', borderBottom: '1px solid #6264a722', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
           <button className="btn-ghost" onClick={() => setView('lesson')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← LESSON</button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em' }}>QUIZ · LESSON {currentLesson.id}</div>
+            <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em' }}>QUIZ · LESSON {currentLesson.day}</div>
             <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 13, color: ACCENT, marginTop: 2 }}>{currentLesson.title}</div>
           </div>
           <span style={{ fontSize: 12, color: '#3a4a6a' }}>{quizIndex + 1} / {currentLesson.quiz.length}</span>
         </div>
         <div style={{ maxWidth: 620, margin: '60px auto', padding: '0 24px' }}>
           <div style={{ fontSize: 10, letterSpacing: '0.2em', color: '#6264a766', marginBottom: 20 }}>QUESTION {quizIndex + 1}</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#c8d6e5', lineHeight: 1.5, marginBottom: 32 }}>{q.q}</div>
-          {!showAnswer
-            ? <button className="btn-primary" onClick={() => setShowAnswer(true)} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, width: '100%' }}>REVEAL ANSWER</button>
-            : <div>
-                <div style={{ border: `1px solid ${PURPLE}44`, borderRadius: 4, padding: '16px 20px', background: PURPLE_BG, marginBottom: 20 }}>
-                  <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em', marginBottom: 8 }}>ANSWER</div>
-                  <div style={{ fontSize: 14, color: ACCENT, lineHeight: 1.6 }}>{q.a}</div>
-                </div>
-                <button className="btn-primary" onClick={nextQ} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, width: '100%' }}>
-                  {quizIndex < currentLesson.quiz.length - 1 ? 'NEXT QUESTION →' : 'COMPLETE LESSON ✓'}
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#c8d6e5', lineHeight: 1.5, marginBottom: 28 }}>{q.q}</div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+            {q.options.map((opt, idx) => {
+              const isCorrect = idx === q.correct;
+              const isSelected = idx === selectedOption;
+              let bg = '#0d0f1e', border = '#1e2235', color = '#c8d6e5';
+              if (answered) {
+                if (isCorrect) { bg = '#0a2a1a'; border = '#6abf69'; color = '#6abf69'; }
+                else if (isSelected) { bg = '#2a0a0a'; border = '#ff1744'; color = '#ff8a80'; }
+              }
+              return (
+                <button key={idx} className={`quiz-option ${answered ? 'locked' : ''}`}
+                  onClick={() => handleOptionSelect(idx)}
+                  disabled={answered}
+                  style={{ padding: '14px 18px', borderRadius: 4, border: `1px solid ${border}`, background: bg, color: color, fontSize: 14, fontFamily: "'IBM Plex Mono', monospace", display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontWeight: 700, opacity: 0.6 }}>{String.fromCharCode(65 + idx)}</span>
+                  <span>{opt}</span>
+                  {answered && isCorrect && <span style={{ marginLeft: 'auto' }}>✓</span>}
+                  {answered && isSelected && !isCorrect && <span style={{ marginLeft: 'auto' }}>✗</span>}
                 </button>
-              </div>
-          }
+              );
+            })}
+          </div>
+
+          {answered && (
+            <button className="btn-primary" onClick={nextQuestion} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, width: '100%' }}>
+              {quizIndex < currentLesson.quiz.length - 1 ? 'NEXT QUESTION →' : 'COMPLETE LESSON ✓'}
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
-  if (view === 'complete') return (
+  // ── LESSON COMPLETE ──
+  if (view === 'complete') {
+    const wasFirstCompletion = lastLessonSubmitStatus !== null;
+    return (
     <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0c14', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ textAlign: 'center', padding: 40 }}>
+      <div style={{ textAlign: 'center', padding: 40, maxWidth: 480 }}>
         <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 52, color: PURPLE, marginBottom: 12 }}>✓</div>
         <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 18, color: ACCENT, marginBottom: 8 }}>LESSON COMPLETE</div>
         <div style={{ fontSize: 13, color: '#8a9ab4', marginBottom: 4 }}>{currentLesson?.title}</div>
         <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 34, color: '#a9abdf', margin: '20px 0' }}>+{currentLesson?.xp} XP</div>
-        <div style={{ fontSize: 12, color: '#3a4a6a', marginBottom: 32 }}>Total XP: {totalXP} · {completed.length} / {allLessons.length} complete</div>
+        <div style={{ fontSize: 12, color: '#3a4a6a', marginBottom: 8 }}>Overall Score: {totalCorrect} / {TOTAL_QUESTIONS} correct</div>
+        <div style={{ fontSize: 12, color: '#3a4a6a', marginBottom: 12 }}>{completedCount} / {allLessons.length} lessons complete</div>
+        {wasFirstCompletion && (
+          <div style={{ fontSize: 11, color: lastLessonSubmitStatus === 'fail' ? '#ff8a80' : '#3a4a6a', marginBottom: 24 }}>
+            {lastLessonSubmitStatus === 'fail'
+              ? '⚠ Progress could not be recorded automatically — tell your instructor your score for this lesson.'
+              : '✓ Progress recorded automatically'}
+          </div>
+        )}
+        {completedCount === allLessons.length && (
+          <div style={{ marginBottom: 20, padding: '12px', background: '#0a2a1a', border: '1px solid #6abf6944', borderRadius: 4 }}>
+            <div style={{ fontSize: 12, color: '#6abf69', marginBottom: 8 }}>🎓 All lessons complete! View your final certificate.</div>
+            <button className="btn-primary" onClick={() => setView('submit')} style={{ padding: '8px 20px', fontSize: 12, borderRadius: 2, background: '#6abf69', color: '#0a0c14' }}>VIEW CERTIFICATE →</button>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button className="btn-primary" onClick={() => setView('dashboard')} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2 }}>← CURRICULUM</button>
-          {currentLesson && currentLesson.id < allLessons.length && (
-            <button className="btn-primary" onClick={() => openLesson(allLessons[currentLesson.id])} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, background: ACCENT, color: '#0a0c14' }}>
+          {currentLesson && currentLesson.day < allLessons.length && (
+            <button className="btn-primary" onClick={() => openLesson(allLessons[currentLesson.day])} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, background: ACCENT, color: '#0a0c14' }}>
               NEXT LESSON →
             </button>
           )}
         </div>
+      </div>
+    </div>
+  );
+  }
+
+  // ── FINAL CERTIFICATE / SUMMARY SUBMISSION ──
+  if (view === 'submit') return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a0c14', minHeight: '100vh', color: '#c8d6e5' }}>
+      <div style={{ borderBottom: '1px solid #6264a722', padding: '14px 24px', background: '#0d0f1e', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button className="btn-ghost" onClick={() => setView('dashboard')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← BACK</button>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, color: ACCENT }}>COURSE COMPLETE</div>
+      </div>
+
+      <div style={{ maxWidth: 560, margin: '40px auto', padding: '0 24px' }}>
+        {!formSubmitted ? (
+          <>
+            <div style={{ marginBottom: 32, padding: '20px', background: '#0d0f1e', border: '1px solid #6264a722', borderRadius: 4 }}>
+              <div style={{ fontSize: 10, color: '#6264a766', letterSpacing: '0.15em', marginBottom: 12 }}>YOUR RESULTS SUMMARY</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ padding: '10px', background: '#12152a', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: PURPLE }}>{totalCorrect}/{TOTAL_QUESTIONS}</div>
+                  <div style={{ fontSize: 10, color: '#3a4a6a', marginTop: 4 }}>QUESTIONS CORRECT</div>
+                </div>
+                <div style={{ padding: '10px', background: '#12152a', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: ACCENT }}>{Math.round((totalCorrect / TOTAL_QUESTIONS) * 100)}%</div>
+                  <div style={{ fontSize: 10, color: '#3a4a6a', marginTop: 4 }}>FINAL SCORE</div>
+                </div>
+                <div style={{ padding: '10px', background: '#12152a', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: PURPLE }}>{totalXP}</div>
+                  <div style={{ fontSize: 10, color: '#3a4a6a', marginTop: 4 }}>TOTAL XP EARNED</div>
+                </div>
+                <div style={{ padding: '10px', background: '#12152a', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: '#6abf69' }}>{completedCount}/12</div>
+                  <div style={{ fontSize: 10, color: '#3a4a6a', marginTop: 4 }}>LESSONS COMPLETE</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 20, padding: '10px 14px', background: '#0d0f1e', border: '1px solid #1e2235', borderRadius: 4, fontSize: 11, color: '#3a4a6a', lineHeight: 1.6 }}>
+              Signed in as <strong style={{ color: '#8a9ab4' }}>{studentDisplayName || studentEmail}</strong>. Your verified school account, score, and lesson completion record will be submitted for course credit. No additional personal information is collected.
+            </div>
+
+            {formError && <div style={{ marginBottom: 16, padding: '10px 14px', background: '#2a0a0a', border: '1px solid #ff174444', borderRadius: 4, fontSize: 12, color: '#ff8a80' }}>{formError}</div>}
+
+            <button className="btn-primary" onClick={submitFinalSummary} style={{ padding: '12px', fontSize: 13, borderRadius: 2, width: '100%' }}>
+              SUBMIT FINAL RESULTS →
+            </button>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 52, color: '#6abf69', marginBottom: 16 }}>🎓</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, color: '#6abf69', marginBottom: 12 }}>SUBMISSION COMPLETE</div>
+            <div style={{ fontSize: 13, color: '#8a9ab4', marginBottom: 24, lineHeight: 1.7 }}>
+              Your results have been submitted successfully.<br/>
+              <strong style={{ color: '#c8d6e5' }}>{studentDisplayName}</strong> · {studentEmail}
+            </div>
+            <div style={{ padding: '20px', background: '#0d0f1e', border: '1px solid #6abf6933', borderRadius: 4, marginBottom: 28 }}>
+              <div style={{ fontSize: 11, color: '#3a4a6a', marginBottom: 12, letterSpacing: '0.1em' }}>COMPLETION CERTIFICATE</div>
+              <div style={{ fontSize: 13, color: '#c8d6e5', lineHeight: 1.8 }}>
+                <div><span style={{ color: '#3a4a6a' }}>Student:</span> {studentDisplayName}</div>
+                <div><span style={{ color: '#3a4a6a' }}>School Account:</span> {studentEmail}</div>
+                <div><span style={{ color: '#3a4a6a' }}>Course:</span> {COURSE_NAME}</div>
+                <div><span style={{ color: '#3a4a6a' }}>Score:</span> {totalCorrect} / {TOTAL_QUESTIONS} ({Math.round((totalCorrect / TOTAL_QUESTIONS) * 100)}%)</div>
+                <div><span style={{ color: '#3a4a6a' }}>Lessons:</span> {completedCount} of 12 complete</div>
+                <div><span style={{ color: '#3a4a6a' }}>Date:</span> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <div><span style={{ color: '#3a4a6a' }}>Provider:</span> TechCatchUp Courses</div>
+              </div>
+            </div>
+            <button className="btn-primary" onClick={() => setView('dashboard')} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2 }}>← BACK TO CURRICULUM</button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -864,6 +1403,52 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+<!-- ============== LOCKDOWN MODULE: copy/select/devtools event blocking ============== -->
+<script id="lockdown-script">
+(function () {
+  'use strict';
+  function isFormField(el) {
+    if (!el || !el.tagName) return false;
+    const tag = el.tagName.toUpperCase();
+    return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
+  }
+  document.addEventListener('contextmenu', function (e) {
+    if (!isFormField(e.target)) e.preventDefault();
+  }, false);
+  ['copy', 'cut'].forEach(function (evtName) {
+    document.addEventListener(evtName, function (e) {
+      if (!isFormField(e.target)) {
+        e.preventDefault();
+        if (e.clipboardData) e.clipboardData.setData('text/plain', '');
+      }
+    }, false);
+  });
+  document.addEventListener('dragstart', function (e) {
+    if (!isFormField(e.target)) e.preventDefault();
+  }, false);
+  document.addEventListener('keydown', function (e) {
+    const k = e.key ? e.key.toLowerCase() : '';
+    const ctrlOrCmd = e.ctrlKey || e.metaKey;
+    if (isFormField(e.target)) {
+      if (e.key === 'F12' || (ctrlOrCmd && e.shiftKey && ['i','j','c'].includes(k)) || (ctrlOrCmd && k === 'u')) {
+        e.preventDefault();
+      }
+      return;
+    }
+    if (ctrlOrCmd && ['a','c','x','s','p'].includes(k)) e.preventDefault();
+    if (e.key === 'F12' || (ctrlOrCmd && e.shiftKey && ['i','j','c'].includes(k)) || (ctrlOrCmd && k === 'u')) {
+      e.preventDefault();
+    }
+  }, false);
+  const observer = new MutationObserver(function () {
+    document.querySelectorAll('input, textarea, [contenteditable="true"]').forEach(function (el) {
+      el.style.userSelect = 'text';
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
 </script>
 </body>
 </html>
