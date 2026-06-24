@@ -528,6 +528,13 @@ function App() {
   // technique, a fetch() call WILL throw a real, catchable error if the network
   // request itself fails to send (DNS failure, CSP block, offline, etc.), which
   // gives us an honest signal instead of always reporting silent success.
+  //
+  // IMPORTANT: do NOT manually set a Content-Type header here. Under mode:'no-cors',
+  // the browser only allows a small safelist of headers through unmodified; manually
+  // setting Content-Type can cause Google's endpoint to reject the request with a
+  // 401 even though the form ID and entry IDs are correct. Passing a URLSearchParams
+  // object directly as the fetch body lets the browser set the correct safelisted
+  // Content-Type itself, which is the combination that actually works.
   const postToGoogleForm = async (fieldValues) => {
     const cfg = GOOGLE_FORM_CONFIG;
     // NOTE: Google Forms' public submission endpoint requires a "/e/" segment
@@ -540,8 +547,7 @@ function App() {
     await fetch(formUrl, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString()
+      body: params
     });
     // With mode: 'no-cors' the browser deliberately hides the real response
     // (status, body) from JavaScript for cross-origin requests, even on success.
