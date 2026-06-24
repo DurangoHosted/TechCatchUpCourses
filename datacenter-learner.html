@@ -530,7 +530,11 @@ function App() {
   // gives us an honest signal instead of always reporting silent success.
   const postToGoogleForm = async (fieldValues) => {
     const cfg = GOOGLE_FORM_CONFIG;
-    const formUrl = `https://docs.google.com/forms/d/${cfg.formId}/formResponse`;
+    // NOTE: Google Forms' public submission endpoint requires a "/e/" segment
+    // between "/d/" and the form ID — this differs from the ID shown in the
+    // editor's own address bar, which omits it. Always source this ID from
+    // the form's "Send" → link-icon URL, not the edit-view address bar.
+    const formUrl = `https://docs.google.com/forms/d/e/${cfg.formId}/formResponse`;
     const params = new URLSearchParams(fieldValues);
 
     await fetch(formUrl, {
