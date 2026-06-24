@@ -521,38 +521,34 @@ function App() {
   };
 
   // Posts one row to the master Google Form via a hidden iframe (no navigation, no student action)
-  const postToGoogleForm = (fieldValues) => {
+  // Posts one row to the master Google Form using a direct fetch() POST.
+  // Google Forms' formResponse endpoint does not allow reading the response body
+  // cross-origin (it returns an opaque response under 'no-cors'), so we cannot
+  // inspect status codes directly — but unlike the old hidden-iframe/form.submit()
+  // technique, a fetch() call WILL throw a real, catchable error if the network
+  // request itself fails to send (DNS failure, CSP block, offline, etc.), which
+  // gives us an honest signal instead of always reporting silent success.
+  const postToGoogleForm = async (fieldValues) => {
     const cfg = GOOGLE_FORM_CONFIG;
     const formUrl = `https://docs.google.com/forms/d/${cfg.formId}/formResponse`;
     const params = new URLSearchParams(fieldValues);
 
-    const iframeName = 'hidden_iframe_' + Date.now();
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.name = iframeName;
-    document.body.appendChild(iframe);
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = formUrl;
-    form.target = iframeName;
-    params.forEach((val, key) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = val;
-      form.appendChild(input);
+    await fetch(formUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
     });
-    document.body.appendChild(form);
-    form.submit();
-    setTimeout(() => {
-      if (form.parentNode) document.body.removeChild(form);
-      if (iframe.parentNode) document.body.removeChild(iframe);
-    }, 3000);
+    // With mode: 'no-cors' the browser deliberately hides the real response
+    // (status, body) from JavaScript for cross-origin requests, even on success.
+    // Reaching this line means the request was sent without a network-level
+    // error — it does not by itself prove Google accepted the data, but it is
+    // a strictly more honest signal than the old technique ever gave us.
   };
 
-  const submitLessonResult = (lesson, lessonCorrectCount, cumulativeCorrect) => {
+  const submitLessonResult = async (lesson, lessonCorrectCount, cumulativeCorrect) => {
     try {
-      postToGoogleForm({
+      await postToGoogleForm({
         [GOOGLE_FORM_CONFIG.fields.studentEmail]: studentEmail,
         [GOOGLE_FORM_CONFIG.fields.studentDisplayName]: studentDisplayName,
         [GOOGLE_FORM_CONFIG.fields.courseName]: COURSE_NAME,
@@ -564,13 +560,14 @@ function App() {
       });
       setLastLessonSubmitStatus('ok');
     } catch (err) {
+      console.error('Lesson submission failed:', err);
       setLastLessonSubmitStatus('fail');
     }
   };
 
-  const submitFinalSummary = () => {
+  const submitFinalSummary = async () => {
     try {
-      postToGoogleForm({
+      await postToGoogleForm({
         [GOOGLE_FORM_CONFIG.fields.studentEmail]: studentEmail,
         [GOOGLE_FORM_CONFIG.fields.studentDisplayName]: studentDisplayName,
         [GOOGLE_FORM_CONFIG.fields.courseName]: COURSE_NAME,
