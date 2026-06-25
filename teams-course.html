@@ -987,9 +987,28 @@ function App() {
       } catch (err) { return null; }
     }
 
+    // Client-side domain check: only allow @mcrsd.org accounts past sign-in.
+    // NOTE: this is a deterrent against casual/opportunistic spam, not a
+    // security guarantee — anyone willing to bypass our page's JavaScript
+    // entirely (e.g. a raw POST directly to the Form URL) is not stopped by
+    // this check, since it only runs in the visitor's own browser. The only
+    // way to fully close that gap is a server-side relay (e.g. a Google Apps
+    // Script Web App) checking the domain before writing to the Sheet — a
+    // larger rebuild, intentionally not done here. Kept identical to the
+    // Data Center course's version of this same check for consistency.
+    const ALLOWED_EMAIL_DOMAIN = "mcrsd.org";
+
     function handleCredentialResponse(response) {
       const payload = decodeJwt(response.credential);
       if (payload && payload.email) {
+        const emailDomain = payload.email.split('@')[1] || '';
+        if (emailDomain.toLowerCase() !== ALLOWED_EMAIL_DOMAIN) {
+          setSigninError(`This course is only available to MCRSD accounts. Signed in as ${payload.email}, which is not an @${ALLOWED_EMAIL_DOMAIN} account.`);
+          if (window.google && window.google.accounts && window.google.accounts.id) {
+            window.google.accounts.id.disableAutoSelect();
+          }
+          return;
+        }
         setStudentEmail(payload.email);
         setStudentDisplayName(payload.name || payload.email);
         setSigninError('');
