@@ -59,7 +59,8 @@
      change to an authenticated Google Apps Script Web App or the
      Sheets API instead of a direct Forms POST — that is a larger
      rebuild, not a setting tweak.
-
+  5. Must be listed as a trusted app in order for the silent login to work. app id for this is:
+    739086238293-h96tav9cuc2sh59gcnvg7m75po1ibne3.apps.googleusercontent.com
   Diagnostic tip: a direct curl/terminal POST to the formResponse
   URL is the cleanest way to isolate "is this a browser/CSP/page
   problem" from "is this a Google Forms settings problem" — but
