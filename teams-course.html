@@ -44,6 +44,51 @@
      NOT at the form level. Keep this setting OFF.
 ============================================================ -->
 <!-- ============================================================
+  OAUTH SIGN-IN — "WORKS FOR ME, FAILS FOR STUDENTS" (June 2026)
+  ------------------------------------------------------------
+  If sign-in works perfectly when YOU (the admin) test it, but a
+  real student account gets the Google account picker, taps their
+  account, and then... nothing happens — no error, no dashboard,
+  just silence — this is almost certainly NOT a bug in this file's
+  code. It is a Google Workspace ADMIN CONSOLE setting that blocks
+  the student Organizational Unit from using this app at all,
+  while never blocking you, because you (as the admin) created the
+  app under your own account and were implicitly trusted from the
+  start.
+
+  THE FIX IS NOT IN THIS CODE. It is in:
+    admin.google.com → Security → Access and data control →
+    API controls → Manage Third-Party App Access
+
+  Select the STUDENT Organizational Unit specifically (not your
+  own staff OU, not the top-level org) and check the access level
+  for this app. If it shows no listing at all, the OU's default
+  policy for unconfigured/unreviewed third-party apps applies —
+  in many K-12 Workspace setups this default is "Restricted" for
+  student OUs specifically, even when staff OUs are more
+  permissive.
+
+  TO FIX: Add app → search by OAuth Client ID (not app name, since
+  this is an internal/unlisted app) → set access level to
+  "Trusted" → apply to the student OU. Changes take roughly
+  10-15 minutes to propagate.
+
+  This trust grant is tied to the OAuth CLIENT ID, not to any
+  individual HTML file — this exact Client ID is shared across
+  every course in this series (Data Center, this Teams course,
+  and any future course), so trusting it once already covers all
+  of them. This fix was originally discovered and applied while
+  debugging the Data Center course; if it is ever undone or a new
+  Client ID is created for a future course, this same failure mode
+  will reappear and need the identical fix again.
+
+  Because student Chromebooks in this environment are locked down
+  with no DevTools access, this entire class of failure is
+  invisible from the browser console. The Admin Console is the
+  only place this surfaces. Check it FIRST for any "silent failure
+  after account picker" report from a real student.
+============================================================ -->
+<!-- ============================================================
   STANDARDS ALIGNMENT — NOTES FOR FUTURE MAINTAINERS
   ------------------------------------------------------------
   This course (Microsoft Teams — Admin & User Mini Course) is
