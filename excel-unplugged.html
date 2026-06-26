@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- ============================================================
+  STANDARDS ALIGNMENT — Arizona Computer Science Standards
+  ------------------------------------------------------------
+  Verified June 2026 against the live, currently-published Arizona
+  Computer Science Standards (Approved October 22, 2018), sourced
+  directly from azed.gov concept-area PDFs. These codes were
+  originally identified on the instructor's own classroom "Big
+  Picture" poster for this unit and have been independently
+  verified word-for-word against the source documents below.
+
+  Source documents (Arizona Dept. of Education, azed.gov):
+    - Data and Analysis concept PDF (azed.gov, id=5bd090721dcb250308365262)
+    - Algorithms and Programming concept PDF (azed.gov, id=5bd08fef1dcb250308365248)
+    - Standards: Computer Science overview (azed.gov/standards-practices/standards-computer-science)
+
+  Standards covered by this course:
+
+    HS.DA.CVT.1 — Create interactive data visualizations using
+    software tools to help others better understand real-world
+    phenomena. (Concept: Data and Analysis; Subconcept: Collection,
+    Visualization and Transformation)
+    -> Addressed by: Lessons 1-4 (spreadsheet formulas applied to
+       gradebook, family expense, fundraiser, and sales data)
+
+    HS.DA.IM.1 — Analyze computational models to better understand
+    real-world phenomena. (Concept: Data and Analysis; Subconcept:
+    Inference and Models)
+    -> Addressed by: Lessons 5-6 (using spreadsheet calculations —
+       revenue, profit, ROI — to model and analyze real business
+       scenarios and draw conclusions from the data)
+
+    HS.AP.V.1 — Use lists to simplify solutions, generalizing
+    computational problems instead of repeatedly using simple
+    variables. (Concept: Algorithms and Programming; Subconcept:
+    Variables)
+    -> Addressed by: Lesson 7 (VLOOKUP/XLOOKUP — using a list/table
+       structure to generalize a lookup instead of hardcoding each
+       individual value)
+
+  NOTE: The official Arizona standards documents explicitly name
+  "Microsoft Excel and Google Sheets" as example computational
+  tools under related standards (6.DA.CVT.1, 7.DA.CVT.1, 6.AP.PD.3)
+  — the connection between this spreadsheet course and the CS
+  standards framework is built into the standards' own language,
+  not an inferred stretch.
+
+  This course is K-12 Computer Science content (distinct from the
+  Data Center and Teams courses in this series, which are CTE/
+  career-technical content using AZ CTE Technical Standards
+  instead). Do not conflate the two standards frameworks when
+  cross-referencing this course against the others in this series.
+============================================================ -->
+<!-- ============================================================
+  GOOGLE FORM SUBMISSION & OAUTH — see datacenter-learner.html and
+  teams-course.html header comments for full debugging history.
+  This course reuses the identical, already-proven pattern:
+  same OAuth Client ID, same shared master tracking form (Course
+  Name = "Excel Unplugged" distinguishes these rows), same fetch()
+  submission method with the required "/e/" URL segment, same
+  lockdown module. Remember to add this course's URL to the OAuth
+  Client's Authorized redirect URIs in Google Cloud Console before
+  deploying, and confirm the student OU is trusted in the Admin
+  Console (Security > API controls > Manage Third-Party App
+  Access) if sign-in works for staff but not students — this is
+  tied to the Client ID, so it may already be covered if that
+  trust grant was applied broadly rather than per-OAuth-client.
+============================================================ -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Excel Unplugged — Spreadsheet & Business Math Course</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://accounts.google.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.googleusercontent.com; connect-src https://docs.google.com https://accounts.google.com; frame-src https://accounts.google.com https://docs.google.com; form-action https://docs.google.com; base-uri 'self';">
+<script>
+  window.addEventListener('click', function(e) {
+    var target = e.target.closest('a');
+    if (target && target.href && !target.href.startsWith('#') && !target.href.startsWith('javascript')) {
+      e.preventDefault(); e.stopPropagation(); return false;
+    }
+  }, true);
+  window.open = function() { return null; };
+</script>
+<!-- Google Identity Services (silent OAuth sign-in) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; }
+  body { background: #0a120e; font-family: 'IBM Plex Mono', monospace; color: #c8e0d4; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0a120e; }
+  ::-webkit-scrollbar-thumb { background: #1d9e7533; border-radius: 2px; }
+  .btn-primary { background: #1d9e75; color: #ffffff; border: none; font-family: 'IBM Plex Mono', monospace; font-weight: 700; letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; }
+  .btn-primary:hover { background: #2bbf8e; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: #4a7a64; border: 1px solid #1a3328; font-family: 'IBM Plex Mono', monospace; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover { border-color: #1d9e7544; color: #7ab494; }
+  .lesson-card { transition: all 0.2s; cursor: pointer; }
+  .lesson-card:hover { border-color: #1d9e75 !important; background: #102018 !important; }
+  .quiz-option { transition: all 0.15s; cursor: pointer; text-align: left; width: 100%; }
+  .quiz-option:hover:not(.locked) { border-color: #1d9e75 !important; background: #102018 !important; }
+
+  /* ── LOCKDOWN MODULE: disable text selection sitewide ── */
+  * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+  input, textarea, [contenteditable="true"] { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+  img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
+  ::selection { background: transparent; }
+
+  .gsi-signin-card { background: #0d1a14; border: 1px solid #1d9e7522; border-radius: 6px; padding: 36px 32px; max-width: 420px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const GREEN = "#1d9e75";
+const GREEN_LT = "#2bbf8e";
+const GREEN_BG = "#13261d";
+const ACCENT = "#7ce0bb";
+
+// ─────────────────────────────────────────
+// GOOGLE OAUTH CONFIGURATION
+// Reuses the same Client ID as Data Center / Teams — same
+// Workspace domain. Remember to add this file's URL to the
+// Client's Authorized redirect URIs in Cloud Console.
+// ─────────────────────────────────────────
+const GOOGLE_OAUTH_CLIENT_ID = "739086238293-h96tav9cuc2sh59gcnvg7m75po1ibne3.apps.googleusercontent.com";
+
+// ─────────────────────────────────────────
+// GOOGLE FORM CONFIGURATION — SAME shared Master Tracking Log
+// used by every course in this series.
+// ─────────────────────────────────────────
+const GOOGLE_FORM_CONFIG = {
+  formId: "1FAIpQLSdvmpjiQ9k1FZCv0khGZBWoIF0kqWPvgnyylLQRgy4IDM0nMw",
+  fields: {
+    studentEmail: "entry.659729629",
+    studentDisplayName: "entry.642379464",
+    courseName: "entry.1731057226",
+    lessonNumber: "entry.1406985482",
+    lessonTitle: "entry.865807923",
+    lessonScore: "entry.1202968821",
+    cumulativeScore: "entry.552925036",
+    sessionTimestamp: "entry.1138914731"
+  }
+};
+
+const COURSE_NAME = "Excel Unplugged";
+const ALLOWED_EMAIL_DOMAIN = "mcrsd.org";
+
+const curriculum = [
+  {
+    module: 1,
+    theme: "Spreadsheet Fundamentals",
+    icon: "⊞",
+    lessons: [
+      {
+        day: 1, title: "What Is a Spreadsheet?", duration: "20 min", xp: 100,
+        tag: "UNPLUGGED",
+        content: [
+          { type: "intro", text: "A spreadsheet is a tool used to organize and analyze data. Information is stored in rows and columns, and each box where they meet is called a cell. The real power of a spreadsheet is that it can automatically calculate results using formulas — but before you ever touch a computer, you need to understand what's happening underneath." },
+          { type: "heading", text: "The Parts of a Spreadsheet" },
+          { type: "bullets", items: [
+            "**Row** — a horizontal line of cells, numbered (1, 2, 3...)",
+            "**Column** — a vertical line of cells, lettered (A, B, C...)",
+            "**Cell** — the box where a row and column meet, where data is entered (e.g., cell B5)",
+            "**Formula** — a calculation the spreadsheet performs for you, always starting with an equals sign (=)"
+          ]},
+          { type: "heading", text: "Why This Matters" },
+          { type: "bullets", items: [
+            "Spreadsheets save time — instead of adding 20 numbers by hand every time something changes, the formula recalculates instantly.",
+            "Spreadsheets reduce errors — a person can miscopy a number; a correct formula doesn't.",
+            "Spreadsheets are used everywhere — finance, science, business, cybersecurity, sports, restaurants, hospitals."
+          ]},
+          { type: "heading", text: "Cell References" },
+          { type: "bullets", items: [
+            "A cell is named by its column letter followed by its row number — B5 means column B, row 5.",
+            "Formulas use cell references (like B2, C2) instead of typing the actual numbers, so if the data changes, the answer updates automatically.",
+            "This is the single most important habit in spreadsheets: reference the cell, don't retype the number."
+          ]}
+        ],
+        quiz: [
+          { q: "What is a cell in a spreadsheet?", options: [
+            "A horizontal line of data",
+            "The box where a row and column meet, where data is entered",
+            "A type of formula",
+            "The title of the spreadsheet"
+          ], correct: 1 },
+          { q: "Why do formulas use cell references (like B2) instead of typing the actual number?", options: [
+            "Cell references look more professional",
+            "It's required by law in business settings",
+            "So the formula automatically updates if the data in that cell ever changes",
+            "Typing numbers directly is not allowed in any spreadsheet program"
+          ], correct: 2 },
+          { q: "What symbol does every spreadsheet formula begin with?", options: [
+            "A dollar sign ($)",
+            "An equals sign (=)",
+            "A colon (:)",
+            "A question mark (?)"
+          ], correct: 1 }
+        ]
+      },
+      {
+        day: 2, title: "SUM & AVERAGE Formulas", duration: "25 min", xp: 100,
+        tag: "UNPLUGGED",
+        content: [
+          { type: "intro", text: "SUM and AVERAGE are the two most common formulas you'll use. SUM adds numbers together. AVERAGE calculates the mean — the sum divided by how many numbers there are." },
+          { type: "heading", text: "Gradebook Averages" },
+          { type: "table", headers: ["Student", "Test 1", "Test 2", "Test 3", "Average (rounded)"], rows: [
+            ["Brian", "89", "72", "99", "87"],
+            ["Annie", "87", "85", "100", "91"],
+            ["Mark", "25", "89", "56", "57"],
+            ["Susan", "80", "37", "95", "71"],
+          ]},
+          { type: "bullets", items: [
+            "The formula for Brian's average is **=AVERAGE(B4:D4)** — this tells the spreadsheet to average everything from cell B4 through D4.",
+            "(89 + 72 + 99) ÷ 3 = 86.6666... which rounds to 87.",
+            "The colon (:) between B4 and D4 means 'everything from this cell to this cell' — it's called a range."
+          ]},
+          { type: "heading", text: "Family Expenses" },
+          { type: "table", headers: ["Family", "Rent", "Food", "Gas", "Entertainment", "Total"], rows: [
+            ["Gigglepants", "$1,350.00", "$650.25", "$85.14", "$600.83", "$2,686"],
+            ["Bumblefluff", "$850.00", "$325.54", "$59.80", "$352.48", "$1,588"],
+          ]},
+          { type: "bullets", items: [
+            "The formula for total expenses is **=SUM(B5:E5)** — adds every value from B5 through E5.",
+            "$1,350.00 + $650.25 + $85.14 + $600.83 = $2,686.22, which rounds to $2,686.",
+            "SUM and AVERAGE both use a range (a colon between two cells) — the difference is what they do with the numbers inside that range."
+          ]}
+        ],
+        quiz: [
+          { q: "Brian's three test scores are 89, 72, and 99. What is his average, rounded to the nearest whole number?", options: [
+            "86", "87", "88", "90"
+          ], correct: 1 },
+          { q: "Which formula would correctly calculate the SUM of values in cells B5 through E5?", options: [
+            "=AVERAGE(B5:E5)", "=SUM(B5,E5)", "=SUM(B5:E5)", "=TOTAL(B5-E5)"
+          ], correct: 2 },
+          { q: "What does the colon (:) mean inside a formula like =SUM(B5:E5)?", options: [
+            "Divide the first number by the second",
+            "Everything from this cell to this cell (a range)",
+            "Multiply the two cells together",
+            "It separates two unrelated formulas"
+          ], correct: 1 },
+          { q: "The Noodleton family spent $525.00 rent, $245.88 food, $63.55 gas, and $542.16 entertainment. What is their total, rounded to the nearest dollar?", options: [
+            "$1,276", "$1,377", "$1,476", "$1,250"
+          ], correct: 1 }
+        ]
+      },
+      {
+        day: 3, title: "Multiplication Formulas", duration: "20 min", xp: 100,
+        tag: "UNPLUGGED",
+        content: [
+          { type: "intro", text: "Not every calculation is an addition or average — sometimes you need to multiply. The school fundraiser is a perfect example: every student sells T-shirts at the same price, so the total each person raises is price × quantity." },
+          { type: "heading", text: "School Fundraiser — T-Shirts at $10.00 Each" },
+          { type: "table", headers: ["Student", "Shirts Sold", "Price Each", "Total"], rows: [
+            ["Marcus", "56", "$10.00", "$560.00"],
+            ["Lacy", "117", "$10.00", "$1,170.00"],
+            ["Calliope", "524", "$10.00", "$5,240.00"],
+            ["Izzy", "18", "$10.00", "$180.00"],
+          ]},
+          { type: "bullets", items: [
+            "The formula for Marcus's total is **=B5*C5** — the asterisk (*) is how spreadsheets write multiplication.",
+            "56 shirts × $10.00 = $560.00.",
+            "This is different from SUM and AVERAGE — there's no range here, just two specific cells multiplied together."
+          ]},
+          { type: "heading", text: "Most and Least" },
+          { type: "bullets", items: [
+            "Calliope raised the most money: 524 shirts × $10.00 = $5,240.00.",
+            "Izzy raised the least: 18 shirts × $10.00 = $180.00.",
+            "Spreadsheets have built-in MAX and MIN formulas that can find the highest and lowest values in a list automatically, without you having to scan every row yourself."
+          ]}
+        ],
+        quiz: [
+          { q: "What symbol does a spreadsheet use to represent multiplication in a formula?", options: [
+            "x", "*", "^", "&"
+          ], correct: 1 },
+          { q: "Sharika sold 85 T-shirts at $10.00 each for the fundraiser. What is her total?", options: [
+            "$85.00", "$ 8.50", "$850.00", "$8,500.00"
+          ], correct: 2 },
+          { q: "Which formula correctly calculates Marcus's total if shirts sold is in B5 and price is in C5?", options: [
+            "=SUM(B5:C5)", "=AVERAGE(B5,C5)", "=B5*C5", "=B5+C5"
+          ], correct: 2 },
+          { q: "Out of Marcus (56), Lacy (117), and Calliope (524) shirts sold, who raised the most money for the fundraiser?", options: [
+            "Marcus", "Lacy", "Calliope", "They all raised the same amount"
+          ], correct: 2 }
+        ]
+      },
+      {
+        day: 4, title: "Sales Data & Finding Extremes", duration: "20 min", xp: 100,
+        tag: "UNPLUGGED",
+        content: [
+          { type: "intro", text: "Real businesses track sales over time — not just one number, but trends across weeks or months. This lesson combines SUM and AVERAGE with a new skill: finding the highest (MAX) and lowest (MIN) values in a data set." },
+          { type: "heading", text: "Three-Month Sales Tracking" },
+          { type: "table", headers: ["Salesperson", "January", "February", "March", "Total", "Average"], rows: [
+            ["Jason", "$5,512.88", "$3,142.34", "$4,906.46", "$13,562", "$4,521"],
+            ["Sally", "$586.23", "$334.15", "$521.74", "$1,442", "$481"],
+            ["Frank", "$8,522.45", "$4,857.80", "$7,584.98", "$20,965", "$6,988"],
+          ]},
+          { type: "bullets", items: [
+            "Total Sales formula: **=SUM(B5:D5)** — adds January + February + March.",
+            "Average Sales formula: **=AVERAGE(B5:D5)** — same range, different formula, different question answered.",
+            "Jason's total: $5,512.88 + $3,142.34 + $4,906.46 = $13,561.68, which rounds to $13,562.",
+            "Jason's average: $13,561.68 ÷ 3 = $4,520.56, which rounds to $4,521."
+          ]},
+          { type: "heading", text: "Finding the Highest and Lowest" },
+          { type: "bullets", items: [
+            "**MAX** finds the largest number in a range — useful for finding your top performer.",
+            "**MIN** finds the smallest number in a range — useful for spotting who might need support or coaching.",
+            "Out of Jason, Sally, and Frank, Frank had the highest 3-month average ($6,988); Sally had the lowest ($481).",
+            "In a real business, this kind of comparison helps managers decide where to focus training, recognition, or support."
+          ]}
+        ],
+        quiz: [
+          { q: "What is the difference between the SUM formula and the AVERAGE formula when applied to the same range of cells?", options: [
+            "There is no difference, they always give the same answer",
+            "SUM adds all the values together; AVERAGE divides that sum by how many values there are",
+            "SUM only works with two cells; AVERAGE works with any number of cells",
+            "AVERAGE is used for money and SUM is used for everything else"
+          ], correct: 1 },
+          { q: "Which formula would you use to find the salesperson with the single highest sales figure in a list?", options: [
+            "=AVERAGE", "=MAX", "=MIN", "=SUM"
+          ], correct: 1 },
+          { q: "Jason's January, February, and March sales were $5,512.88, $3,142.34, and $4,906.46. What is his total sales, rounded to the nearest dollar?", options: [
+            "$12,562", "$13,562", "$14,562", "$13,461"
+          ], correct: 1 },
+          { q: "A manager wants to find which employee needs the most coaching based on lowest average sales. Which formula helps answer that directly?", options: [
+            "=SUM", "=MAX", "=MIN", "=COUNT"
+          ], correct: 2 }
+        ]
+      }
+    ]
+  },
+  {
+    module: 2,
+    theme: "Business Math & Lookup Logic",
+    icon: "◆",
+    lessons: [
+      {
+        day: 5, title: "Revenue, Cost & Profit", duration: "25 min", xp: 100,
+        tag: "BUSINESS",
+        content: [
+          { type: "intro", text: "Every business — a school concession stand, a lemonade stand, or a Fortune 500 company — runs on the same basic vocabulary. Understanding these terms is essential before any spreadsheet formula means anything." },
+          { type: "heading", text: "Core Business Vocabulary" },
+          { type: "bullets", items: [
+            "**Revenue** (also called Gross Revenue or Total Sales) — all the money a business collects from customers, before subtracting anything. Formula: Sale Price × Quantity Sold.",
+            "**Cost** (also called Wholesale Cost or Cost of Goods) — what the business paid to acquire what it sells. Formula: Wholesale Price × Quantity.",
+            "**Profit** — what's left over after paying costs. Formula: Revenue − Cost. This is the real measure of whether a business made money.",
+            "**Profit Margin** — profit expressed as a percentage of revenue. Formula: Profit ÷ Revenue. This measures efficiency, not just raw dollars."
+          ]},
+          { type: "heading", text: "Concession Stand Example: Chips" },
+          { type: "table", headers: ["Metric", "Value", "How It's Calculated"], rows: [
+            ["Wholesale Cost", "$0.65", "What the school paid per bag"],
+            ["Sale Price", "$1.00", "What students paid per bag"],
+            ["Quantity Sold", "25", "Bags sold"],
+            ["Total Revenue", "$25.00", "25 × $1.00"],
+            ["Total Profit", "$8.75", "($1.00 − $0.65) × 25"],
+            ["Profit Margin", "35%", "$8.75 ÷ $25.00"],
+          ]},
+          { type: "heading", text: "Why the Difference Between Revenue and Profit Matters" },
+          { type: "bullets", items: [
+            "A business can have huge revenue and still lose money if costs are too high.",
+            "Revenue tells you how much came in. Profit tells you how much was actually earned.",
+            "Confusing the two is one of the most common business mistakes — a $1,000 in sales is not the same as $1,000 earned."
+          ]}
+        ],
+        quiz: [
+          { q: "A school sold 25 bags of chips for $1.00 each. What is the TOTAL REVENUE?", options: [
+            "$0.65", "$8.75", "$16.25", "$25.00"
+          ], correct: 3 },
+          { q: "What is the correct formula for calculating Profit?", options: [
+            "Revenue × Cost", "Revenue + Cost", "Revenue − Cost", "Cost ÷ Revenue"
+          ], correct: 2 },
+          { q: "A business has high revenue but very high costs. What can still happen?", options: [
+            "The business automatically makes a large profit",
+            "The business could still have low profit or even lose money",
+            "Revenue and profit are always exactly equal",
+            "This situation is impossible in real business"
+          ], correct: 1 },
+          { q: "What does Profit Margin measure that raw profit dollars alone do not?", options: [
+            "The total number of items sold",
+            "How efficient the business is — profit as a percentage of revenue",
+            "The wholesale cost of an item",
+            "The number of employees needed"
+          ], correct: 1 }
+        ]
+      },
+      {
+        day: 6, title: "Return on Investment (ROI)", duration: "25 min", xp: 100,
+        tag: "BUSINESS",
+        content: [
+          { type: "intro", text: "Return on Investment (ROI) answers a specific question: for every dollar I put in, how much did I get back? It's one of the most important concepts in business decision-making — and it can completely change which option looks 'best.'" },
+          { type: "heading", text: "The ROI Formula" },
+          { type: "bullets", items: [
+            "**ROI = Profit ÷ Cost** (often expressed as a percentage)",
+            "This is closely related to Profit Margin, but ROI compares profit to what you SPENT (cost), while Profit Margin compares profit to what you EARNED (revenue).",
+            "A high ROI means you got a lot back for what you put in — even if the total dollar amount is small."
+          ]},
+          { type: "heading", text: "The Concession Stand Reveals a Surprise" },
+          { type: "table", headers: ["Item", "Cost to Buy", "Qty", "Total Profit", "Profit Margin", "ROI (Profit ÷ Cost)"], rows: [
+            ["Nachos", "$1.75", "75", "$93.75", "41.7%", "71.4%"],
+            ["Cookies", "$0.10", "15", "$17.25", "92.0%", "1150%"],
+          ]},
+          { type: "bullets", items: [
+            "**Nachos made the most total profit** in the whole concession stand ($93.75) — the biggest raw number.",
+            "**Cookies had a far higher ROI** (1150% vs. 71.4%) — for every dollar spent buying cookies wholesale, the school got back over $11 in profit.",
+            "This is the central lesson of ROI: the item with the biggest profit isn't always the smartest investment. If the school could only afford to spend a limited amount on inventory, cookies would multiply that money far more efficiently than nachos."
+          ]},
+          { type: "heading", text: "Where Else ROI Shows Up" },
+          { type: "bullets", items: [
+            "A company deciding whether to buy new equipment vs. hire another employee",
+            "A student deciding whether a certification course is 'worth it' for the career outcome it produces",
+            "An investor comparing two stocks — the one with higher returns per dollar invested, not just higher total dollar gains"
+          ]}
+        ],
+        quiz: [
+          { q: "What does ROI (Return on Investment) measure?", options: [
+            "The total number of items sold",
+            "How much profit was generated for every dollar spent (cost)",
+            "The price customers pay for an item",
+            "How many employees a business has"
+          ], correct: 1 },
+          { q: "In the concession stand data, Nachos made $93.75 total profit while Cookies made only $17.25 total profit. Why might Cookies still be considered the 'smarter' investment using ROI?", options: [
+            "Cookies are always smarter regardless of any numbers",
+            "Cookies had a dramatically higher ROI — far more profit returned per dollar spent on cost",
+            "Nachos cost nothing to make",
+            "Total profit and ROI always tell you the exact same thing"
+          ], correct: 1 },
+          { q: "What is the key difference between Profit Margin and ROI?", options: [
+            "They are exactly the same calculation with different names",
+            "Profit Margin compares profit to revenue; ROI compares profit to cost",
+            "ROI only applies to physical products, never services",
+            "Profit Margin is always a higher number than ROI"
+          ], correct: 1 },
+          { q: "If Item A has $50 profit on a $500 cost, and Item B has $20 profit on a $40 cost, which has the better ROI?", options: [
+            "Item A, because $50 is more than $20",
+            "Item B, because its ROI (50%) is much higher than Item A's (10%)",
+            "They have the same ROI",
+            "ROI cannot be calculated with this information"
+          ], correct: 1 }
+        ]
+      },
+      {
+        day: 7, title: "Lookup Logic — VLOOKUP & XLOOKUP", duration: "20 min", xp: 100,
+        tag: "BUSINESS",
+        content: [
+          { type: "intro", text: "Businesses don't want to retype the same information over and over. If a company has a directory of 500 clients, and a salesperson needs that client's name on a new form, retyping it risks typos and wastes time. Lookup formulas solve this by automatically pulling information from one place into another." },
+          { type: "heading", text: "The Problem Lookup Formulas Solve" },
+          { type: "bullets", items: [
+            "Imagine a Client Directory sheet with Client ID numbers and Client Names.",
+            "A separate Sales Tracking sheet only has the Client ID — typing the name again risks errors and wastes time.",
+            "A lookup formula finds the ID in the directory and automatically pulls back the matching name — no retyping, and it updates automatically if the directory changes."
+          ]},
+          { type: "heading", text: "VLOOKUP — The Classic Option" },
+          { type: "bullets", items: [
+            "VLOOKUP stands for 'Vertical Lookup' — it searches down a column to find a match.",
+            "Structure: =VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
+            "lookup_value = what you're searching for (e.g., the Client ID)",
+            "table_array = the full range containing both the ID column and the Name column",
+            "col_index_num = which column (counting from the left of the table_array) holds the answer you want"
+          ]},
+          { type: "heading", text: "XLOOKUP — The Modern Option" },
+          { type: "bullets", items: [
+            "XLOOKUP is a newer, more flexible version of the same idea.",
+            "Structure: =XLOOKUP(lookup_value, lookup_array, return_array)",
+            "lookup_array = the range where the ID is listed (where you're searching)",
+            "return_array = the range where the actual answer (the name) is listed",
+            "XLOOKUP is often easier to read because you specify exactly where to look and exactly what to return, instead of counting columns."
+          ]},
+          { type: "heading", text: "If the Source Data Changes" },
+          { type: "bullets", items: [
+            "If the Retail Price in the master spreadsheet changes, every formula that references it — Total Sales, Total Profit, Profit Margin — updates automatically.",
+            "This is the entire point of using cell references and lookup formulas instead of typing static numbers: one change ripples correctly through everything connected to it."
+          ]}
+        ],
+        quiz: [
+          { q: "What does VLOOKUP stand for and what does it search?", options: [
+            "Variable Lookup — searches randomly through a sheet",
+            "Vertical Lookup — searches down a column to find a match",
+            "Value Lookup — only works with numbers, never text",
+            "Visual Lookup — searches images, not data"
+          ], correct: 1 },
+          { q: "In an XLOOKUP formula, what is the 'return_array'?", options: [
+            "The range where you are searching for your lookup value",
+            "The range that contains the actual answer you want returned",
+            "A formula that undoes the lookup",
+            "The total number of rows in the sheet"
+          ], correct: 1 },
+          { q: "Why would a business use a lookup formula instead of just retyping a client's name every time?", options: [
+            "Retyping is required for legal compliance",
+            "Lookup formulas are slower but more secure",
+            "It avoids typos and automatically stays correct if the source directory changes",
+            "Lookup formulas only work with client data, nothing else"
+          ], correct: 2 },
+          { q: "If the Retail Price changes in a master spreadsheet, what happens to formulas elsewhere that reference that price (like Total Sales or Profit)?", options: [
+            "Nothing happens unless someone manually updates each formula",
+            "They automatically recalculate using the new price",
+            "They break and show an error",
+            "Only the Total Sales formula updates, not Profit"
+          ], correct: 1 }
+        ]
+      },
+      {
+        day: 8, title: "Choosing the Right Formula", duration: "20 min", xp: 100,
+        tag: "BUSINESS",
+        content: [
+          { type: "intro", text: "The hardest part of using spreadsheets isn't typing a formula correctly — it's recognizing which formula a situation actually calls for. This final lesson is a review built entirely around real-world scenarios." },
+          { type: "heading", text: "A Quick Decision Guide" },
+          { type: "table", headers: ["If you need to...", "Use this formula"], rows: [
+            ["Add up a list of numbers", "SUM"],
+            ["Find the mean/typical value", "AVERAGE"],
+            ["Find the single highest value", "MAX"],
+            ["Find the single lowest value", "MIN"],
+            ["Multiply two values (like price × quantity)", "Basic multiplication (*)"],
+            ["Pull matching info from another table", "VLOOKUP or XLOOKUP"],
+          ]},
+          { type: "heading", text: "Business Vocabulary Recap" },
+          { type: "bullets", items: [
+            "**Revenue** = Price × Quantity (all money collected)",
+            "**Cost** = Wholesale Price × Quantity (what the business paid)",
+            "**Profit** = Revenue − Cost (what's left over)",
+            "**Profit Margin** = Profit ÷ Revenue (efficiency, as a % of sales)",
+            "**ROI** = Profit ÷ Cost (efficiency, as a % of what was spent)"
+          ]},
+          { type: "heading", text: "Putting It All Together" },
+          { type: "bullets", items: [
+            "Every spreadsheet skill in this course connects back to one idea: formulas let you calculate once and trust the answer to update correctly forever after.",
+            "Whether it's a school fundraiser, a concession stand, or a real company's quarterly report, the underlying logic is the same.",
+            "These same skills — SUM, AVERAGE, multiplication, lookups, and business vocabulary — are used in finance, retail, healthcare, and virtually every career path that touches data."
+          ]}
+        ],
+        quiz: [
+          { q: "A teacher wants to find the single highest test score in a class of 30 students. Which formula is correct?", options: [
+            "SUM", "AVERAGE", "MAX", "VLOOKUP"
+          ], correct: 2 },
+          { q: "A store wants to calculate how much money a product brought in by multiplying its price by how many units sold. What is this calculation called?", options: [
+            "Profit", "Revenue", "ROI", "Profit Margin"
+          ], correct: 1 },
+          { q: "Which formula would pull a customer's name into a sales sheet based on matching their Customer ID from a separate directory?", options: [
+            "SUM", "AVERAGE", "MAX", "VLOOKUP or XLOOKUP"
+          ], correct: 3 },
+          { q: "A business wants to know what percentage of every dollar spent on inventory came back as profit. Which calculation answers that?", options: [
+            "Revenue", "Profit Margin", "ROI", "SUM"
+          ], correct: 2 },
+          { q: "Which formula finds the average of a group of numbers?", options: [
+            "SUM", "AVERAGE", "MAX", "MIN"
+          ], correct: 1 }
+        ]
+      }
+    ]
+  }
+];
+
+const allLessons = curriculum.flatMap(m => m.lessons);
+const TOTAL_QUESTIONS = allLessons.reduce((sum, l) => sum + l.quiz.length, 0);
+function renderContent(blocks) {
+  return blocks.map((block, i) => {
+    if (block.type === 'intro') return (
+      <p key={i} style={{ fontSize: 13, lineHeight: 1.8, color: '#a0c8b4', marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid #1a3328` }}>{block.text}</p>
+    );
+    if (block.type === 'heading') return (
+      <p key={i} style={{ fontWeight: 700, color: ACCENT, marginTop: 20, marginBottom: 8, fontSize: 13, letterSpacing: '0.04em' }}>▸ {block.text}</p>
+    );
+    if (block.type === 'bullets') return (
+      <ul key={i} style={{ listStyle: 'none', marginBottom: 12 }}>
+        {block.items.map((item, j) => {
+          const parts = item.split(/\*\*(.*?)\*\*/g);
+          return (
+            <li key={j} style={{ display: 'flex', gap: 8, marginBottom: 5, fontSize: 13, lineHeight: 1.6 }}>
+              <span style={{ color: GREEN, flexShrink: 0, marginTop: 1 }}>›</span>
+              <span style={{ color: '#c8e0d4' }}>
+                {parts.map((p, k) => k % 2 === 1
+                  ? <strong key={k} style={{ color: ACCENT }}>{p}</strong>
+                  : p
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    );
+    if (block.type === 'table') return (
+      <div key={i} style={{ overflowX: 'auto', marginBottom: 16 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <thead>
+            <tr>
+              {block.headers.map((h, j) => (
+                <th key={j} style={{ padding: '8px 12px', textAlign: 'left', background: GREEN_BG, color: ACCENT, borderBottom: `2px solid ${GREEN}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {block.rows.map((row, j) => (
+              <tr key={j} style={{ borderBottom: '1px solid #1a3328' }}>
+                {row.map((cell, k) => (
+                  <td key={k} style={{ padding: '7px 12px', color: k === 0 ? '#7ab494' : '#c8e0d4', verticalAlign: 'top' }}>{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+    return null;
+  });
+}
+
+function App() {
+  const [currentLesson, setCurrentLesson] = useState(null);
+  const [completedLessons, setCompletedLessons] = useState({});
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [answered, setAnswered] = useState(false);
+  const [totalXP, setTotalXP] = useState(0);
+  const [totalCorrect, setTotalCorrect] = useState(0);
+  const [view, setView] = useState('signin');
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
+  const [studentDisplayName, setStudentDisplayName] = useState('');
+  const [signinError, setSigninError] = useState('');
+  const [lastLessonSubmitStatus, setLastLessonSubmitStatus] = useState(null);
+  const [lessonCorrectCount, setLessonCorrectCount] = useState(0);
+
+  const completedCount = Object.keys(completedLessons).length;
+  const progress = (completedCount / allLessons.length) * 100;
+  const allDone = completedCount === allLessons.length;
+
+  // ── GOOGLE SIGN-IN (silent, picks up existing Chromebook session) ──
+  useEffect(() => {
+    function decodeJwt(token) {
+      try {
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(decodeURIComponent(atob(base64).split('').map(c =>
+          '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join('')));
+      } catch (err) { return null; }
+    }
+
+    function handleCredentialResponse(response) {
+      const payload = decodeJwt(response.credential);
+      if (payload && payload.email) {
+        const emailDomain = payload.email.split('@')[1] || '';
+        if (emailDomain.toLowerCase() !== ALLOWED_EMAIL_DOMAIN) {
+          setSigninError(`This course is only available to MCRSD accounts. Signed in as ${payload.email}, which is not an @${ALLOWED_EMAIL_DOMAIN} account.`);
+          if (window.google && window.google.accounts && window.google.accounts.id) {
+            window.google.accounts.id.disableAutoSelect();
+          }
+          return;
+        }
+        setStudentEmail(payload.email);
+        setStudentDisplayName(payload.name || payload.email);
+        setSigninError('');
+        setView('dashboard');
+      } else {
+        setSigninError('We could not verify your Google account. Please try again or ask your instructor for help.');
+      }
+    }
+
+    function initGsi() {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_OAUTH_CLIENT_ID,
+          callback: handleCredentialResponse,
+          auto_select: true
+        });
+        const btnContainer = document.getElementById('gsiButtonContainer');
+        if (btnContainer) {
+          window.google.accounts.id.renderButton(btnContainer, {
+            theme: 'filled_black', size: 'large', text: 'signin_with', shape: 'pill', width: 280
+          });
+        }
+        window.google.accounts.id.prompt();
+      } else {
+        setTimeout(initGsi, 300);
+      }
+    }
+    if (view === 'signin') initGsi();
+  }, [view]);
+
+  const openLesson = (lesson) => {
+    setCurrentLesson(lesson);
+    setQuizIndex(0);
+    setSelectedOption(null);
+    setAnswered(false);
+    setLessonCorrectCount(0);
+    setView('lesson');
+  };
+
+  const startQuiz = () => {
+    setQuizIndex(0);
+    setSelectedOption(null);
+    setAnswered(false);
+    setLessonCorrectCount(0);
+    setView('quiz');
+  };
+
+  const handleOptionSelect = (idx) => {
+    if (answered) return;
+    setSelectedOption(idx);
+    setAnswered(true);
+    const correct = idx === currentLesson.quiz[quizIndex].correct;
+    if (correct) {
+      setTotalCorrect(c => c + 1);
+      setLessonCorrectCount(c => c + 1);
+    }
+  };
+
+  const postToGoogleForm = async (fieldValues) => {
+    const cfg = GOOGLE_FORM_CONFIG;
+    const formUrl = `https://docs.google.com/forms/d/e/${cfg.formId}/formResponse`;
+    const params = new URLSearchParams(fieldValues);
+    await fetch(formUrl, { method: 'POST', mode: 'no-cors', body: params });
+  };
+
+  const submitLessonResult = async (lesson, lessonCorrectCount, cumulativeCorrect) => {
+    try {
+      await postToGoogleForm({
+        [GOOGLE_FORM_CONFIG.fields.studentEmail]: studentEmail,
+        [GOOGLE_FORM_CONFIG.fields.studentDisplayName]: studentDisplayName,
+        [GOOGLE_FORM_CONFIG.fields.courseName]: COURSE_NAME,
+        [GOOGLE_FORM_CONFIG.fields.lessonNumber]: String(lesson.day),
+        [GOOGLE_FORM_CONFIG.fields.lessonTitle]: lesson.title,
+        [GOOGLE_FORM_CONFIG.fields.lessonScore]: `${lessonCorrectCount}/${lesson.quiz.length}`,
+        [GOOGLE_FORM_CONFIG.fields.cumulativeScore]: `${cumulativeCorrect}/${TOTAL_QUESTIONS}`,
+        [GOOGLE_FORM_CONFIG.fields.sessionTimestamp]: new Date().toLocaleString('en-US')
+      });
+      setLastLessonSubmitStatus('ok');
+    } catch (err) {
+      console.error('Lesson submission failed:', err);
+      setLastLessonSubmitStatus('fail');
+    }
+  };
+
+  const submitFinalSummary = async () => {
+    try {
+      await postToGoogleForm({
+        [GOOGLE_FORM_CONFIG.fields.studentEmail]: studentEmail,
+        [GOOGLE_FORM_CONFIG.fields.studentDisplayName]: studentDisplayName,
+        [GOOGLE_FORM_CONFIG.fields.courseName]: COURSE_NAME,
+        [GOOGLE_FORM_CONFIG.fields.lessonNumber]: "FINAL",
+        [GOOGLE_FORM_CONFIG.fields.lessonTitle]: "Course Complete — Final Summary",
+        [GOOGLE_FORM_CONFIG.fields.lessonScore]: `${totalCorrect}/${TOTAL_QUESTIONS}`,
+        [GOOGLE_FORM_CONFIG.fields.cumulativeScore]: `${totalCorrect}/${TOTAL_QUESTIONS}`,
+        [GOOGLE_FORM_CONFIG.fields.sessionTimestamp]: new Date().toLocaleString('en-US')
+      });
+      setFormSubmitted(true);
+    } catch (err) {
+      setFormError('Submission failed. Please tell your instructor your name and score.');
+    }
+  };
+
+  const nextQuestion = () => {
+    if (quizIndex < currentLesson.quiz.length - 1) {
+      setQuizIndex(q => q + 1);
+      setSelectedOption(null);
+      setAnswered(false);
+    } else {
+      const alreadyCompleted = !!completedLessons[currentLesson.day];
+      if (!alreadyCompleted) {
+        setCompletedLessons(p => ({ ...p, [currentLesson.day]: true }));
+        setTotalXP(x => x + currentLesson.xp);
+        submitLessonResult(currentLesson, lessonCorrectCount, totalCorrect);
+      } else {
+        setLastLessonSubmitStatus(null);
+      }
+      setView('complete');
+    }
+  };
+
+  // ── SIGN IN ──
+  if (view === 'signin') return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a120e', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div className="gsi-signin-card">
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 11, letterSpacing: '0.25em', color: '#1d9e7599', marginBottom: 6 }}>TECH CATCH UP COURSES</div>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, fontWeight: 900, color: ACCENT, marginBottom: 18 }}>EXCEL UNPLUGGED</div>
+        <div style={{ fontSize: 12, color: '#7ab494', marginBottom: 24, lineHeight: 1.7 }}>
+          Sign in with your school Google account to begin.<br/>If you're already signed in on this Chromebook, this should happen automatically.
+        </div>
+        <div id="gsiButtonContainer" style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}></div>
+        {signinError && (
+          <div style={{ marginTop: 12, padding: '10px 14px', background: '#2a0a0a', border: '1px solid #ff174444', borderRadius: 4, fontSize: 12, color: '#ff8a80' }}>{signinError}</div>
+        )}
+        <div style={{ marginTop: 24, fontSize: 11, color: '#3a5a4a' }}>Having trouble signing in? Ask your instructor for help.</div>
+      </div>
+    </div>
+  );
+
+  // ── DASHBOARD ──
+  if (view === 'dashboard') return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a120e', minHeight: '100vh', color: '#c8e0d4' }}>
+      <div style={{ background: '#0d1a14', borderBottom: '1px solid #1d9e7522', padding: '20px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, letterSpacing: '0.3em', color: '#1d9e7599', marginBottom: 4 }}>TECH CATCH UP COURSES</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 22, fontWeight: 900, color: ACCENT, letterSpacing: '0.04em' }}>EXCEL UNPLUGGED</div>
+            <div style={{ fontSize: 11, color: '#3a5a4a', marginTop: 3 }}>Spreadsheet & Business Math · 8 Lessons</div>
+            <div style={{ fontSize: 11, color: '#3a5a4a', marginTop: 4 }}>Signed in as {studentDisplayName || studentEmail}</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: '#3a5a4a', letterSpacing: '0.1em' }}>TOTAL XP</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 30, fontWeight: 900, color: GREEN }}>{totalXP}</div>
+            <div style={{ fontSize: 11, color: '#3a5a4a' }}>{completedCount} / {allLessons.length} complete</div>
+          </div>
+        </div>
+        <div style={{ marginTop: 14, height: 3, background: '#1a3328', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${GREEN}, ${ACCENT})`, transition: 'width 0.5s ease' }} />
+        </div>
+        <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+          <span style={{ fontSize: 10, color: '#4a7a64' }}>
+            <span style={{ background: GREEN_BG, color: ACCENT, padding: '2px 6px', borderRadius: 2, marginRight: 6, border: `1px solid ${GREEN}44` }}>UNPLUGGED</span>
+            Pencil & calculator
+          </span>
+          <span style={{ fontSize: 10, color: '#4a7a64' }}>
+            <span style={{ background: '#241a0a', color: '#e0a96a', padding: '2px 6px', borderRadius: 2, marginRight: 6, border: '1px solid #e0a96a44' }}>BUSINESS</span>
+            Business math & lookups
+          </span>
+        </div>
+      </div>
+
+      <div style={{ padding: '20px 24px', maxWidth: 960, margin: '0 auto' }}>
+        {curriculum.map(mod => (
+          <div key={mod.module} style={{ marginBottom: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 16, color: GREEN }}>{mod.icon}</span>
+              <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, letterSpacing: '0.2em', color: '#1d9e7566', border: '1px solid #1d9e7522', padding: '3px 8px', borderRadius: 2 }}>MODULE {mod.module}</span>
+              <span style={{ fontSize: 13, color: '#7ab494', fontWeight: 600 }}>{mod.theme}</span>
+              <div style={{ flex: 1, height: 1, background: '#1d9e7511' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+              {mod.lessons.map(lesson => {
+                const done = !!completedLessons[lesson.day];
+                const isBusiness = lesson.tag === 'BUSINESS';
+                return (
+                  <div key={lesson.day} className="lesson-card" onClick={() => openLesson(lesson)}
+                    style={{ border: `1px solid ${done ? '#1d9e7544' : '#1a3328'}`, borderRadius: 4, padding: '14px 16px', background: done ? '#102018' : '#0d1a14', position: 'relative', overflow: 'hidden' }}>
+                    {done && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${GREEN}, ${ACCENT})` }} />}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, color: done ? GREEN : '#2a4a3a', fontWeight: 700 }}>LESSON {lesson.day}</span>
+                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 2,
+                        background: isBusiness ? '#241a0a' : GREEN_BG,
+                        color: isBusiness ? '#e0a96a' : ACCENT,
+                        border: `1px solid ${isBusiness ? '#e0a96a33' : GREEN + '44'}` }}>
+                        {lesson.tag}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: done ? '#c8e0d4' : '#7ab494', lineHeight: 1.4, marginBottom: 6 }}>{lesson.title}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, color: '#2a4a3a' }}>{lesson.duration} · {lesson.quiz.length} quiz questions</span>
+                      {done ? <span style={{ fontSize: 10, color: GREEN }}>✓ +{lesson.xp}XP</span> : <span style={{ fontSize: 10, color: '#2a4a3a' }}>{lesson.xp} XP</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {allDone && (
+          <div style={{ marginBottom: 24, padding: '14px 16px', background: '#0a2a1a', border: '1px solid #6abf6944', borderRadius: 4 }}>
+            <div style={{ fontSize: 12, color: '#6abf69', marginBottom: 8 }}>🎓 All lessons complete! View your final certificate.</div>
+            <button className="btn-primary" onClick={() => setView('submit')} style={{ padding: '8px 20px', fontSize: 12, borderRadius: 2 }}>VIEW CERTIFICATE →</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ── LESSON ──
+  if (view === 'lesson' && currentLesson) return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a120e', minHeight: '100vh', color: '#c8e0d4' }}>
+      <div style={{ background: '#0d1a14', borderBottom: '1px solid #1d9e7522', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        <button className="btn-ghost" onClick={() => setView('dashboard')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← BACK</button>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 10, color: '#1d9e7566', letterSpacing: '0.15em' }}>LESSON {currentLesson.day} · {currentLesson.tag} · {currentLesson.duration}</div>
+          <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, color: ACCENT, marginTop: 2 }}>{currentLesson.title}</div>
+        </div>
+        <button className="btn-primary" onClick={startQuiz} style={{ padding: '8px 18px', fontSize: 12, borderRadius: 2 }}>START QUIZ →</button>
+      </div>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '28px 24px' }}>
+        {renderContent(currentLesson.content)}
+        <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid #1a3328' }}>
+          <button className="btn-primary" onClick={startQuiz} style={{ padding: '10px 24px', fontSize: 13, borderRadius: 2, width: '100%' }}>TEST YOUR KNOWLEDGE →</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── QUIZ ──
+  if (view === 'quiz' && currentLesson) {
+    const q = currentLesson.quiz[quizIndex];
+    return (
+      <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a120e', minHeight: '100vh', color: '#c8e0d4' }}>
+        <div style={{ background: '#0d1a14', borderBottom: '1px solid #1d9e7522', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button className="btn-ghost" onClick={() => setView('lesson')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← LESSON</button>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 10, color: '#1d9e7566', letterSpacing: '0.15em' }}>QUIZ · LESSON {currentLesson.day}</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 13, color: ACCENT, marginTop: 2 }}>{currentLesson.title}</div>
+          </div>
+          <span style={{ fontSize: 12, color: '#3a5a4a' }}>{quizIndex + 1} / {currentLesson.quiz.length}</span>
+        </div>
+        <div style={{ maxWidth: 620, margin: '60px auto', padding: '0 24px' }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.2em', color: '#1d9e7566', marginBottom: 20 }}>QUESTION {quizIndex + 1}</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#c8e0d4', lineHeight: 1.5, marginBottom: 28 }}>{q.q}</div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+            {q.options.map((opt, idx) => {
+              const isCorrect = idx === q.correct;
+              const isSelected = idx === selectedOption;
+              let bg = '#0d1a14', border = '#1a3328', color = '#c8e0d4';
+              if (answered) {
+                if (isCorrect) { bg = '#0a2a1a'; border = '#6abf69'; color = '#6abf69'; }
+                else if (isSelected) { bg = '#2a0a0a'; border = '#ff1744'; color = '#ff8a80'; }
+              }
+              return (
+                <button key={idx} className={`quiz-option ${answered ? 'locked' : ''}`}
+                  onClick={() => handleOptionSelect(idx)}
+                  disabled={answered}
+                  style={{ padding: '14px 18px', borderRadius: 4, border: `1px solid ${border}`, background: bg, color: color, fontSize: 14, fontFamily: "'IBM Plex Mono', monospace", display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontWeight: 700, opacity: 0.6 }}>{String.fromCharCode(65 + idx)}</span>
+                  <span>{opt}</span>
+                  {answered && isCorrect && <span style={{ marginLeft: 'auto' }}>✓</span>}
+                  {answered && isSelected && !isCorrect && <span style={{ marginLeft: 'auto' }}>✗</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {answered && (
+            <button className="btn-primary" onClick={nextQuestion} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, width: '100%' }}>
+              {quizIndex < currentLesson.quiz.length - 1 ? 'NEXT QUESTION →' : 'COMPLETE LESSON ✓'}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── LESSON COMPLETE ──
+  if (view === 'complete') {
+    const wasFirstCompletion = lastLessonSubmitStatus !== null;
+    return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a120e', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center', padding: 40, maxWidth: 480 }}>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 52, color: GREEN, marginBottom: 12 }}>✓</div>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 18, color: ACCENT, marginBottom: 8 }}>LESSON COMPLETE</div>
+        <div style={{ fontSize: 13, color: '#7ab494', marginBottom: 4 }}>{currentLesson?.title}</div>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 34, color: '#7ce0bb', margin: '20px 0' }}>+{currentLesson?.xp} XP</div>
+        <div style={{ fontSize: 12, color: '#3a5a4a', marginBottom: 8 }}>Overall Score: {totalCorrect} / {TOTAL_QUESTIONS} correct</div>
+        <div style={{ fontSize: 12, color: '#3a5a4a', marginBottom: 12 }}>{completedCount} / {allLessons.length} lessons complete</div>
+        {wasFirstCompletion && (
+          <div style={{ fontSize: 11, color: lastLessonSubmitStatus === 'fail' ? '#ff8a80' : '#3a5a4a', marginBottom: 24 }}>
+            {lastLessonSubmitStatus === 'fail'
+              ? '⚠ Progress could not be recorded automatically — tell your instructor your score for this lesson.'
+              : '✓ Progress recorded automatically'}
+          </div>
+        )}
+        {completedCount === allLessons.length && (
+          <div style={{ marginBottom: 20, padding: '12px', background: '#0a2a1a', border: '1px solid #6abf6944', borderRadius: 4 }}>
+            <div style={{ fontSize: 12, color: '#6abf69', marginBottom: 8 }}>🎓 All lessons complete! View your final certificate.</div>
+            <button className="btn-primary" onClick={() => setView('submit')} style={{ padding: '8px 20px', fontSize: 12, borderRadius: 2, background: '#6abf69', color: '#0a120e' }}>VIEW CERTIFICATE →</button>
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button className="btn-primary" onClick={() => setView('dashboard')} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2 }}>← CURRICULUM</button>
+          {currentLesson && currentLesson.day < allLessons.length && (
+            <button className="btn-primary" onClick={() => openLesson(allLessons[currentLesson.day])} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2, background: ACCENT, color: '#0a120e' }}>
+              NEXT LESSON →
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+  }
+
+  // ── FINAL CERTIFICATE / SUMMARY SUBMISSION ──
+  if (view === 'submit') return (
+    <div style={{ fontFamily: "'IBM Plex Mono', monospace", background: '#0a120e', minHeight: '100vh', color: '#c8e0d4' }}>
+      <div style={{ borderBottom: '1px solid #1d9e7522', padding: '14px 24px', background: '#0d1a14', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button className="btn-ghost" onClick={() => setView('dashboard')} style={{ padding: '6px 12px', fontSize: 11, borderRadius: 2 }}>← BACK</button>
+        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, color: ACCENT }}>COURSE COMPLETE</div>
+      </div>
+
+      <div style={{ maxWidth: 560, margin: '40px auto', padding: '0 24px' }}>
+        {!formSubmitted ? (
+          <>
+            <div style={{ marginBottom: 32, padding: '20px', background: '#0d1a14', border: '1px solid #1d9e7522', borderRadius: 4 }}>
+              <div style={{ fontSize: 10, color: '#1d9e7566', letterSpacing: '0.15em', marginBottom: 12 }}>YOUR RESULTS SUMMARY</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ padding: '10px', background: '#102018', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: GREEN }}>{totalCorrect}/{TOTAL_QUESTIONS}</div>
+                  <div style={{ fontSize: 10, color: '#3a5a4a', marginTop: 4 }}>QUESTIONS CORRECT</div>
+                </div>
+                <div style={{ padding: '10px', background: '#102018', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: ACCENT }}>{Math.round((totalCorrect / TOTAL_QUESTIONS) * 100)}%</div>
+                  <div style={{ fontSize: 10, color: '#3a5a4a', marginTop: 4 }}>FINAL SCORE</div>
+                </div>
+                <div style={{ padding: '10px', background: '#102018', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: GREEN }}>{totalXP}</div>
+                  <div style={{ fontSize: 10, color: '#3a5a4a', marginTop: 4 }}>TOTAL XP EARNED</div>
+                </div>
+                <div style={{ padding: '10px', background: '#102018', borderRadius: 4, textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 24, color: '#6abf69' }}>{completedCount}/8</div>
+                  <div style={{ fontSize: 10, color: '#3a5a4a', marginTop: 4 }}>LESSONS COMPLETE</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 20, padding: '10px 14px', background: '#0d1a14', border: '1px solid #1a3328', borderRadius: 4, fontSize: 11, color: '#3a5a4a', lineHeight: 1.6 }}>
+              Signed in as <strong style={{ color: '#7ab494' }}>{studentDisplayName || studentEmail}</strong>. Your verified school account, score, and lesson completion record will be submitted for course credit. No additional personal information is collected.
+            </div>
+
+            {formError && <div style={{ marginBottom: 16, padding: '10px 14px', background: '#2a0a0a', border: '1px solid #ff174444', borderRadius: 4, fontSize: 12, color: '#ff8a80' }}>{formError}</div>}
+
+            <button className="btn-primary" onClick={submitFinalSummary} style={{ padding: '12px', fontSize: 13, borderRadius: 2, width: '100%' }}>
+              SUBMIT FINAL RESULTS →
+            </button>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 52, color: '#6abf69', marginBottom: 16 }}>🎓</div>
+            <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, color: '#6abf69', marginBottom: 12 }}>SUBMISSION COMPLETE</div>
+            <div style={{ fontSize: 13, color: '#7ab494', marginBottom: 24, lineHeight: 1.7 }}>
+              Your results have been submitted successfully.<br/>
+              <strong style={{ color: '#c8e0d4' }}>{studentDisplayName}</strong> · {studentEmail}
+            </div>
+            <div style={{ padding: '20px', background: '#0d1a14', border: '1px solid #6abf6933', borderRadius: 4, marginBottom: 28 }}>
+              <div style={{ fontSize: 11, color: '#3a5a4a', marginBottom: 12, letterSpacing: '0.1em' }}>COMPLETION CERTIFICATE</div>
+              <div style={{ fontSize: 13, color: '#c8e0d4', lineHeight: 1.8 }}>
+                <div><span style={{ color: '#3a5a4a' }}>Student:</span> {studentDisplayName}</div>
+                <div><span style={{ color: '#3a5a4a' }}>School Account:</span> {studentEmail}</div>
+                <div><span style={{ color: '#3a5a4a' }}>Course:</span> {COURSE_NAME}</div>
+                <div><span style={{ color: '#3a5a4a' }}>Score:</span> {totalCorrect} / {TOTAL_QUESTIONS} ({Math.round((totalCorrect / TOTAL_QUESTIONS) * 100)}%)</div>
+                <div><span style={{ color: '#3a5a4a' }}>Lessons:</span> {completedCount} of 8 complete</div>
+                <div><span style={{ color: '#3a5a4a' }}>Date:</span> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <div><span style={{ color: '#3a5a4a' }}>Provider:</span> TechCatchUp Courses</div>
+              </div>
+            </div>
+            <button className="btn-primary" onClick={() => setView('dashboard')} style={{ padding: '12px 28px', fontSize: 13, borderRadius: 2 }}>← BACK TO CURRICULUM</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+<!-- ============== LOCKDOWN MODULE: copy/select/devtools event blocking ============== -->
+<script id="lockdown-script">
+(function () {
+  'use strict';
+  function isFormField(el) {
+    if (!el || !el.tagName) return false;
+    const tag = el.tagName.toUpperCase();
+    return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
+  }
+  document.addEventListener('contextmenu', function (e) {
+    if (!isFormField(e.target)) e.preventDefault();
+  }, false);
+  ['copy', 'cut'].forEach(function (evtName) {
+    document.addEventListener(evtName, function (e) {
+      if (!isFormField(e.target)) {
+        e.preventDefault();
+        if (e.clipboardData) e.clipboardData.setData('text/plain', '');
+      }
+    }, false);
+  });
+  document.addEventListener('dragstart', function (e) {
+    if (!isFormField(e.target)) e.preventDefault();
+  }, false);
+  document.addEventListener('keydown', function (e) {
+    const k = e.key ? e.key.toLowerCase() : '';
+    const ctrlOrCmd = e.ctrlKey || e.metaKey;
+    if (isFormField(e.target)) {
+      if (e.key === 'F12' || (ctrlOrCmd && e.shiftKey && ['i','j','c'].includes(k)) || (ctrlOrCmd && k === 'u')) {
+        e.preventDefault();
+      }
+      return;
+    }
+    if (ctrlOrCmd && ['a','c','x','s','p'].includes(k)) e.preventDefault();
+    if (e.key === 'F12' || (ctrlOrCmd && e.shiftKey && ['i','j','c'].includes(k)) || (ctrlOrCmd && k === 'u')) {
+      e.preventDefault();
+    }
+  }, false);
+  const observer = new MutationObserver(function () {
+    document.querySelectorAll('input, textarea, [contenteditable="true"]').forEach(function (el) {
+      el.style.userSelect = 'text';
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+</body>
+</html>
